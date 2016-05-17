@@ -21,9 +21,14 @@ if(changed(0)) {
     }
     
     
-    
+    #function printSistem() {Duplicator["printSistem/prints/noAddE2Name", number] = 1}
     function printSistem([ColorText]:array) {
-        ColorText = array(vec( 255 , 75 , 0 ), "[bone editor] "):add(ColorText)
+        if(Duplicator["printSistem/prints/noAddE2Name", number]) {
+            Duplicator["printSistem/prints/noAddE2Name", number] = 0
+        }
+        else {
+            ColorText = array(vec( 30 , 255 , 30 ), "[Duplicator] "):add(ColorText)
+        }
         local PrintID = Duplicator["printSistem/prints", number] = Duplicator["printSistem/prints", number] + 1
         Duplicator["printSistem/printList", array] = Duplicator["printSistem/printList", array]:add(array( PrintID ))
         Duplicator["printSistem/print" + PrintID + "/colorText", array] = ColorText
@@ -36,37 +41,136 @@ if(changed(0)) {
 }
 
 
+if(chatClk()) {
+    local O = owner()
+    
+    if(chatClk(O)) {
+        if(changed(0)) {
+            
+            function duplicatorAddCommamd([Command Description]:string) {
+                if(!Duplicator["commads/" + Command, number]) {
+                    Duplicator["commads/list", array] = Duplicator["commads/list", array]:add(array( Command ))
+                    
+                    Duplicator["commads/" + Command + "/description", string] = Description
+                    
+                    
+                    
+                }
+            }
+            duplicatorAddCommamd(
+                "команды",
+                "Печатает в чат список загруженных команд."
+            )
+            
+            
+            
+            
+            
+            function duplicatorPrintCommads() {
+                
+                printSistem(array(vec( 255 ), "Список команд :"))
+                Duplicator["printSistem/prints/noAddE2Name", number] = 1
+                
+                foreach(C, Command:string = Duplicator["commads/list", array]) {
+                    printSistem(array(
+                        vec( 255 , 255 , 255 ), "1. \"",
+                        vec( 150 , 150 , 255 ), "!" + Command,
+                        vec( 255 , 255 , 255 ), "\". Описание: " + Duplicator["commads/" + Command + "/description", string]
+                    ))
+                }
+                
+                
+                Duplicator["printSistem/prints/noAddE2Name", number] = 0
+            }
+        }
+        
+        local LS = O:lastSaid()
+        
+        if(LS:index(1) == "!") {
+            hideChat(1)
+            
+            local Explode = LS:sub(2, LS:length()):explode(" ")
+            
+            
+            local Command = Explode[1, string]
+            switch(Command) {
+                case "команды",
+                    duplicatorPrintCommads()
+                break 
+                case "сканировать",
+                    printSistem(array(vec( 200 ), "" ))
+                break
+                case "проверить",
+                    local Arg1 = Explode[2, string]
+                    if(Arg1 == "обновления") {
+                        Duplicator["autoupdate/act", string] = "request"
+                        printSistem(array(vec( 255 , 255 , 255 ), "Начинаю поиск обновлений"))
+                    }
+                break
+                default,
+                    printSistem(array(
+                        vec( 255 , 255 , 255 ), "Напишите ",
+                        vec( 150 , 150 , 255 ), "!команды",
+                        vec( 255 , 255 , 255 ), " чтобы получить список команд." 
+                    ))
+                break
+            }
+        }
+    }
+}
+
+
 if(clk("isNotInclude") | httpClk()) {
         timer("isNotInclude", 50)
     
     if(changed(0)) {
         runOnHTTP(1)
+        runOnChat(1)
         
-        Duplicator["autoupdate/step", string] = "request"
     }
     
-    switch(Duplicator["autoupdate/step", string]) {
+    
+    
+    
+    
+    
+    
+    switch(Duplicator["autoupdate/act", string]) {
         case "request",
             if(httpCanRequest()) {
                 httpRequest("https://raw.githubusercontent.com/AncRad/expression/master/Duplicator")
                 
-                Duplicator["autoupdate/step", string] = "waitingForResponse"
+                Duplicator["autoupdate/act", string] = "waitingForResponse"
+                printSistem(array(
+                    vec( 255 , 255 , 255 ), "Запрос отправлен"
+                ))
             }
         break
         case "waitingForResponse",
             if(httpClk()) {
-                
-                local Code     = Duplicator["autoupdate/code"    , string] = getCode()
                 local HttpData = Duplicator["autoupdate/httpData", string] = httpData()
                 
-                if(HttpData != Code) {
-                    print(HttpData)
+                if(HttpData) {
+                    local Code     = Duplicator["autoupdate/code"    , string] = getCode()
+                    if(Code != HttpData) {
+                        printSistem(array(
+                            vec( 255 , 255 , 255 ), "Файл получен. Ваш код отличается от последней оригинальной версии."
+                        ))
+                    }
+                    else {
+                        printSistem(array(
+                            vec( 255 , 255 , 255 ), "Файл получен. Ваш код не отличается от последней оригинальной версии."
+                        ))
+                    }
                 }
-                
-                Duplicator["autoupdate/step", string] == "codeLoaded"
+                else {
+                    printSistem(array(
+                        vec( 255 , 255 , 255 ), "Файл получен, он пуст"
+                    ))
+                }
+                Duplicator["autoupdate/act", string] == ""
             }
         break
-        
     }
 }
 
@@ -98,3 +202,4 @@ if(clk("printSistem")) {
         Duplicator["printSistem/printList", array]:remove(1)
     }
 }
+
