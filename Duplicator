@@ -1,1 +1,100 @@
+@name Duplicator
+@inputs 
+@outputs 
+@persist [Duplicator]:table
 
+
+
+if(changed(0)) {
+    
+    local E = entity()
+    local O = Duplicator["owner", entity] = owner()
+    
+    
+    if(E:getName() == "Duplicator") {
+        Duplicator["isInclude", number] = 0
+        timer("isNotInclude", 1)
+    }
+    else {
+        Duplicator["isInclude", number] = 1
+        timer("isInclude", 1)
+    }
+    
+    
+    
+    function printSistem([ColorText]:array) {
+        ColorText = array(vec( 255 , 75 , 0 ), "[bone editor] "):add(ColorText)
+        local PrintID = Duplicator["printSistem/prints", number] = Duplicator["printSistem/prints", number] + 1
+        Duplicator["printSistem/printList", array] = Duplicator["printSistem/printList", array]:add(array( PrintID ))
+        Duplicator["printSistem/print" + PrintID + "/colorText", array] = ColorText
+    }
+    timer("printSistem", 1)
+    
+    
+    
+    timer("", 1)
+}
+
+
+if(clk("isNotInclude") | httpClk()) {
+        timer("isNotInclude", 50)
+    
+    if(changed(0)) {
+        runOnHTTP(1)
+        
+        Duplicator["autoupdate/step", string] = "request"
+    }
+    
+    switch(Duplicator["autoupdate/step", string]) {
+        case "request",
+            if(httpCanRequest()) {
+                httpRequest("https://raw.githubusercontent.com/AncRad/expression/master/Duplicator")
+                
+                Duplicator["autoupdate/step", string] = "waitingForResponse"
+            }
+        break
+        case "waitingForResponse",
+            if(httpClk()) {
+                
+                local Code     = Duplicator["autoupdate/code"    , string] = getCode()
+                local HttpData = Duplicator["autoupdate/httpData", string] = httpData()
+                
+                if(HttpData != Code) {
+                    print(HttpData)
+                }
+                
+                Duplicator["autoupdate/step", string] == "codeLoaded"
+            }
+        break
+        
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+if(clk("printSistem")) {
+        timer("printSistem", 350)
+    
+    local Massages = Duplicator["printSistem/printList", array]
+    local Count = Massages:count()
+    if(Count) {
+        local PrintID = Massages[1, number]
+        local ColorText = Duplicator["printSistem/print" + PrintID + "/colorText", array]
+        printColor( ColorText )
+        
+        Duplicator["printSistem/printList", array]:remove(1)
+    }
+}
