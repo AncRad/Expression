@@ -418,5 +418,3 @@ if(clk("printSistem")) {
         Duplicator["printSistem/printList", array]:remove(1)
     }
 }
-
-#end
