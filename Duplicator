@@ -1,30 +1,38 @@
 @name Duplicator
 @inputs 
 @outputs 
-@persist [Duplicator]:table
+@persist [Duplicator]:table [GDuplicator]:gtable
 
 
 
 if(changed(0)) {
+        runOnChat(1)
+        runOnFile(1)
+        timer("printSistem", 1)
+    #
+    
+    
+    
     
     local E = entity()
     local O = Duplicator["owner", entity] = owner()
     
+    GDuplicator = gTable(O:name() + "/duplicator")
     
     if(E:getName() == "Duplicator") {
-        Duplicator["isInclude", number] = 0
+        #Duplicator["isInclude", number] = 0
         timer("isNotInclude", 1)
     }
     else {
-        Duplicator["isInclude", number] = 1
-        timer("isInclude", 1)
+        #Duplicator["isInclude", number] = 1
+        #timer("isInclude", 1)
     }
     
     
     #function printSistem() {Duplicator["printSistem/prints/noAddE2Name", number] = 1}
     function printSistem([ColorText]:array) {
         if(Duplicator["printSistem/prints/noAddE2Name", number]) {
-            Duplicator["printSistem/prints/noAddE2Name", number] = 0
+            #Duplicator["printSistem/prints/noAddE2Name", number] = 0
         }
         else {
             ColorText = array(vec( 30 , 255 , 30 ), "[Duplicator] "):add(ColorText)
@@ -33,11 +41,6 @@ if(changed(0)) {
         Duplicator["printSistem/printList", array] = Duplicator["printSistem/printList", array]:add(array( PrintID ))
         Duplicator["printSistem/print" + PrintID + "/colorText", array] = ColorText
     }
-    timer("printSistem", 1)
-    
-    
-    
-    timer("", 1)
 }
 
 
@@ -46,12 +49,13 @@ if(chatClk()) {
     
     if(chatClk(O)) {
         if(changed(0)) {
+            Duplicator["scanSistem/selectionArea/sphere/radius", number] = 5 * 52.5
             
-            function duplicatorAddCommamd([Command Description]:string) {
+            function duplicatorAddCommamd([Command]:string, Description:array) {
                 if(!Duplicator["commads/" + Command, number]) {
                     Duplicator["commads/list", array] = Duplicator["commads/list", array]:add(array( Command ))
                     
-                    Duplicator["commads/" + Command + "/description", string] = Description
+                    Duplicator["commads/" + Command + "/description", array] = Description
                     
                     
                     
@@ -59,26 +63,59 @@ if(chatClk()) {
             }
             duplicatorAddCommamd(
                 "команды",
-                "Печатает в чат список загруженных команд."
+                array(
+                    vec( 255 , 255 , 255 ), "Печатает в чат список загруженных команд."
+                )
+            )
+            
+            duplicatorAddCommamd(
+                "проверить обновления",
+                array(
+                    vec( 255 , 255 , 255 ), "Отправляет запрос на загрузку страницы с последней оригинальной версией кода. Если страница будет загружена, то вы сможете воспользоваться командой \"",
+                    vec( 150 , 150 , 255 ), "!обновить",
+                    vec( 255 , 255 , 255 ), "\""
+                )
+            )
+            duplicatorAddCommamd(
+                "обновить",
+                array(
+                    vec( 255 , 255 , 255 ), "Заменяет код чипа на код, который был загружен с сервера gitHub."
+                )
+            )
+            
+            duplicatorAddCommamd(
+                "выделить",
+                array(
+                    vec( 255 , 255 , 255 ), "Определяет позицию выделения."
+                )
+            )
+            duplicatorAddCommamd(
+                "радиус",
+                array(
+                    vec( 255 , 255 , 255 ), "Определяет радиус сферического выделения."
+                )
+            )
+            duplicatorAddCommamd(
+                "сканировать",
+                array(
+                    vec( 255 , 255 , 255 ), "Сканирует выделенную область."
+                )
             )
             
             
-            
-            
-            
             function duplicatorPrintCommads() {
-                
-                printSistem(array(vec( 255 ), "Список команд :"))
+                printSistem(array(vec( 255 ), "Список команд: "))
                 Duplicator["printSistem/prints/noAddE2Name", number] = 1
                 
                 foreach(C, Command:string = Duplicator["commads/list", array]) {
-                    printSistem(array(
-                        vec( 255 , 255 , 255 ), "1. \"",
-                        vec( 150 , 150 , 255 ), "!" + Command,
-                        vec( 255 , 255 , 255 ), "\". Описание: " + Duplicator["commads/" + Command + "/description", string]
-                    ))
+                    printSistem(
+                        array(
+                            vec( 255 , 255 , 255 ), C + ". \"",
+                            vec( 150 , 150 , 255 ), "!" + Command,
+                            vec( 255 , 255 , 255 ), "\" "
+                        ):add(Duplicator["commads/" + Command + "/description", array])
+                    )
                 }
-                
                 
                 Duplicator["printSistem/prints/noAddE2Name", number] = 0
             }
@@ -96,23 +133,164 @@ if(chatClk()) {
             switch(Command) {
                 case "команды",
                     duplicatorPrintCommads()
-                break 
-                case "сканировать",
-                    printSistem(array(vec( 200 ), "" ))
                 break
+                
+                case "выделить",
+                    Duplicator["scanSistem/selectionArea/type", string] = "sphere"
+                    Duplicator["scanSistem/selectionArea/sphere/centerPos", vector] = O:aimPos()
+                    printSistem(
+                        array(
+                            vec( 255 , 255 , 255 ), "Новое место выделено"
+                            
+                        )
+                    )
+                break
+                case "радиус",
+                    local Arg1 = Explode[2, string]
+                    local Text = " source юнит"
+                    local ArgNumber = Arg1:toNumber()
+                    local ToMetr = 0
+                    local Print = 0
+                    
+                    if(Arg1:right(2) == "м" | Explode[3, string] == "м") {
+                        Text = " метр"
+                        ToMetr = 1
+                        ArgNumber = round( ArgNumber / toUnit("m", 1) )
+                    }
+                    
+                    if(!ArgNumber) {
+                        Print = 1
+                        ArgNumber = Duplicator["scanSistem/selectionArea/sphere/radius", number]
+                    }
+                    if(ToMetr) {
+                        Radius    = round( ArgNumber * toUnit("m", 1) )
+                        ArgNumber = round( Radius    / toUnit("m", 1) )
+                    }
+                    else {
+                        Radius = round( ArgNumber )
+                    }
+                    
+                    
+                    local LastNumber = Radius:toString():right(1):toNumber()
+                    if(LastNumber == 1) {
+                    }
+                    elseif(LastNumber == 0 | LastNumber >= 5) {
+                        Text = Text + "ов"
+                    }
+                    else {
+                        Text = Text + "а"
+                    }
+                    
+                    
+                    if(!Print) {
+                        Duplicator["scanSistem/selectionArea/sphere/radius", number] = ArgNumber
+                        printSistem(
+                            array(
+                                vec( 255 , 255 , 255 ), "Радиус сканирования изменён на ",
+                                vec( 255 , 120 , 120 ), Radius,
+                                vec( 255 , 255 , 255 ), Text
+                            )
+                        )
+                    }
+                    else {
+                        printSistem(
+                            array(
+                                vec( 255 , 255 , 255 ), "Текущий радиус ",
+                                vec( 255 , 120 , 120 ), Radius,
+                                vec( 255 , 255 , 255 ), Text
+                                
+                            )
+                        )
+                    }
+                break
+                case "сканировать",
+                    local Arg1 = Explode[2, string]
+                    
+                    printSistem(
+                        array(
+                            vec( 255 , 255 , 255 ), ""
+                            
+                        )
+                    )
+                break
+                #
+                #- 
+                #
                 case "проверить",
                     local Arg1 = Explode[2, string]
                     if(Arg1 == "обновления") {
-                        Duplicator["autoupdate/act", string] = "request"
-                        printSistem(array(vec( 255 , 255 , 255 ), "Начинаю поиск обновлений"))
+                        Duplicator["update/act", string] = "request"
+                        printSistem(
+                            array(
+                                vec( 100 , 100 , 255 ), "[Система обновлений] ",
+                                vec( 255 , 255 , 255 ), "Начинаю поиск обновлений"
+                            )
+                        )
                     }
                 break
+                case "обновить",
+                    local HttpData = Duplicator["update/httpData", string]
+                    
+                    if(HttpData) {
+                        local Code = Duplicator["update/code", string]
+                        
+                        if(HttpData != Code) {
+                            #ifdef entity:remoteSetCode(string)
+                                Duplicator["update/act", string] = "update"
+                                printSistem(
+                                    array(
+                                        vec( 100 , 100 , 255 ), "[Система обновлений] ",
+                                        vec( 255 , 255 , 255 ), "Код чипа будет заменён на новый. После замены кода откройте чип и сохраните новую версию."
+                                    )
+                                )
+                            #else
+                                printSistem(
+                                    array(
+                                        vec( 100 , 100 , 255 ), "[Система обновлений] ",
+                                        vec( 255 , 255 , 255 ), "Невозможно заменить код. Не работает функция ",
+                                        
+                                        vec( 130 , 130 , 255 ), "entity",
+                                        vec( 255 , 255 , 255 ), ":",
+                                        vec( 130 , 130 , 255 ), "remoteSetCode",
+                                        vec( 255 , 255 , 255 ), "(",
+                                        vec( 130 , 130 , 255 ), "string",
+                                        vec( 255 , 255 , 255 ), ")",
+                                        
+                                        vec( 255 , 255 , 255 ), "\nВы можете загрузить код, самостоятельно перейдя по ссылке ",
+                                        vec( 100 , 255 , 100 ), Duplicator["update/url", string]
+                                    )
+                                )
+                            #endif
+                        }
+                        else {
+                            printSistem(
+                                array(
+                                    vec( 100 , 100 , 255 ), "[Система обновлений] ",
+                                    vec( 255 , 255 , 255 ), "Не имеет смысла. Коды абсолютно идентичны!"
+                                )
+                            )
+                        }
+                    }
+                    else {
+                        printSistem(
+                            array(
+                                vec( 100 , 100 , 255 ), "[Система обновлений] ",
+                                vec( 255 , 255 , 255 ), "Невозможно. Осутствует файл."
+                            )
+                        )
+                    }
+                break
+                #
+                #- 
+                #
                 default,
-                    printSistem(array(
-                        vec( 255 , 255 , 255 ), "Напишите ",
-                        vec( 150 , 150 , 255 ), "!команды",
-                        vec( 255 , 255 , 255 ), " чтобы получить список команд." 
-                    ))
+                    printSistem(
+                        array(
+                            vec( 255 , 255 , 255 ), "Напишите ",
+                            vec( 150 , 150 , 255 ), "!команды",
+                            vec( 255 , 255 , 255 ), " чтобы получить список команд." 
+                        )
+                    )
                 break
             }
         }
@@ -125,63 +303,101 @@ if(clk("isNotInclude") | httpClk()) {
     
     if(changed(0)) {
         runOnHTTP(1)
-        runOnChat(1)
+        Duplicator["update/url", string] = "https://raw.githubusercontent.com/AncRad/expression/master/Duplicator"
         
     }
     
-    
-    
-    
-    
-    
-    
-    switch(Duplicator["autoupdate/act", string]) {
+    switch(Duplicator["update/act", string]) {
         case "request",
             if(httpCanRequest()) {
-                httpRequest("https://raw.githubusercontent.com/AncRad/expression/master/Duplicator")
+                httpRequest(Duplicator["update/url", string])
                 
-                Duplicator["autoupdate/act", string] = "waitingForResponse"
-                printSistem(array(
-                    vec( 255 , 255 , 255 ), "Запрос отправлен"
-                ))
+                Duplicator["update/act", string] = "waitingForResponse"
+                printSistem(
+                    array(
+                        vec( 100 , 100 , 255 ), "[Система обновлений] ",
+                        vec( 255 , 255 , 255 ), "Запрос отправлен"
+                    )
+                )
             }
         break
         case "waitingForResponse",
             if(httpClk()) {
-                local HttpData = Duplicator["autoupdate/httpData", string] = httpData()
+                local HttpData = Duplicator["update/httpData", string] = httpData()
                 
                 if(HttpData) {
-                    local Code     = Duplicator["autoupdate/code"    , string] = getCode()
+                    local Code = Duplicator["update/code", string] = getCode()
                     if(Code != HttpData) {
-                        printSistem(array(
-                            vec( 255 , 255 , 255 ), "Файл получен. Ваш код отличается от последней оригинальной версии."
-                        ))
+                        printSistem(
+                            array(
+                                vec( 100 , 100 , 255 ), "[Система обновлений] ",
+                                vec( 255 , 255 , 255 ), "Файл получен. Ваш код отличается от последней оригинальной версии."
+                            )
+                        )
                     }
                     else {
-                        printSistem(array(
-                            vec( 255 , 255 , 255 ), "Файл получен. Ваш код не отличается от последней оригинальной версии."
-                        ))
+                        printSistem(
+                            array(
+                                vec( 100 , 100 , 255 ), "[Система обновлений] ",
+                                vec( 255 , 255 , 255 ), "Файл получен. Ваш код не отличается от последней оригинальной версии."
+                            )
+                        )
                     }
                 }
                 else {
-                    printSistem(array(
-                        vec( 255 , 255 , 255 ), "Файл получен, он пуст"
-                    ))
+                    printSistem(
+                        array(
+                            vec( 255 , 255 , 255 ), "Файл получен, он пуст"
+                        )
+                    )
                 }
-                Duplicator["autoupdate/act", string] == ""
+                Duplicator["update/act", string] == ""
+            }
+        break
+        case "update",
+            if(Duplicator["printSistem/printList", array]:count() == 0) {
+                local HttpData = Duplicator["update/httpData", string]
+                
+                
+                #ifdef entity:remoteSetCode(string)
+                    if(HttpData) {
+                        entity():remoteSetCode(HttpData)
+                    }
+                    else {
+                        printSistem(
+                            array(
+                                vec( 100 , 100 , 255 ), "[Система обновлений] ",
+                                vec( 255 , 255 , 255 ), "Невозможно заменить код. Осутствует файл."
+                            )
+                        )
+                        Duplicator["update/act", string] == ""
+                    }
+                #else
+                    printSistem(
+                        array(
+                            vec( 100 , 100 , 255 ), "[Система обновлений] ",
+                            vec( 255 , 255 , 255 ), "Невозможно заменить код. Не работает функция ",
+                            
+                            vec( 130 , 130 , 255 ), "entity",
+                            vec( 255 , 255 , 255 ), ":",
+                            vec( 130 , 130 , 255 ), "remoteSetCode",
+                            vec( 255 , 255 , 255 ), "(",
+                            vec( 130 , 130 , 255 ), "string",
+                            vec( 255 , 255 , 255 ), ")",
+                            
+                            vec( 255 , 255 , 255 ), "\n Вы можете загрузить код, самостоятельно перейдя по ссылке ",
+                            vec( 100 , 255 , 100 ), Duplicator["update/url", string]
+                        )
+                    )
+                    Duplicator["update/act", string] == ""
+                #endif
+            }
+            else {
+                
             }
         break
     }
 }
-
-
-
-
-
-
-
-
-
 
 
 
@@ -202,4 +418,3 @@ if(clk("printSistem")) {
         Duplicator["printSistem/printList", array]:remove(1)
     }
 }
-
