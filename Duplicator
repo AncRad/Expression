@@ -302,9 +302,20 @@ if(clk("isNotInclude") | httpClk()) {
         timer("isNotInclude", 50)
     
     if(changed(0)) {
-        runOnHTTP(1)
+            runOnHTTP(1)
+        
         Duplicator["update/url", string] = "https://raw.githubusercontent.com/AncRad/expression/master/Duplicator"
         
+        if(GDuplicator["update", number]) {
+            GDuplicator["update", number] = 0
+            
+            printSistem(
+                array(
+                    vec( 100 , 100 , 255 ), "[Система обновлений] ",
+                    vec( 255 , 255 , 255 ), "Код был успешно загружен и запущен"
+                )
+            )
+        }
     }
     
     switch(Duplicator["update/act", string]) {
@@ -361,6 +372,7 @@ if(clk("isNotInclude") | httpClk()) {
                 
                 #ifdef entity:remoteSetCode(string)
                     if(HttpData) {
+                        GDuplicator["update", number] = 1
                         entity():remoteSetCode(HttpData)
                     }
                     else {
