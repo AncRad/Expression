@@ -35,7 +35,7 @@ if(changed(0)) {
             #Duplicator["printSistem/prints/noAddE2Name", number] = 0
         }
         else {
-            ColorText = array(vec( 30 , 255 , 30 ), "[Duplicator] "):add(ColorText)
+            ColorText = array(vec( 30,255, 30), "[Duplicator] "):add(ColorText)
         }
         local PrintID = Duplicator["printSistem/prints", number] = Duplicator["printSistem/prints", number] + 1
         Duplicator["printSistem/printList", array] = Duplicator["printSistem/printList", array]:add(array( PrintID ))
@@ -51,6 +51,21 @@ if(chatClk()) {
         if(changed(0)) {
             Duplicator["scanSistem/selectionArea/sphere/radius", number] = 5 * 52.5
             
+            
+                    
+                    
+            function string numToStringEnding(Number:number) {
+                local Number = Number:toString():right(1):toNumber()
+                if(Number == 1) {
+                    return ""
+                }
+                elseif(Number == 0 | Number >= 5) {
+                    return "ов"
+                }
+                else {
+                    return "а"
+                }
+            }
             function duplicatorAddCommamd([Command]:string, Description:array) {
                 if(!Duplicator["commads/" + Command, number]) {
                     Duplicator["commads/list", array] = Duplicator["commads/list", array]:add(array( Command ))
@@ -64,55 +79,58 @@ if(chatClk()) {
             duplicatorAddCommamd(
                 "команды",
                 array(
-                    vec( 255 , 255 , 255 ), "Печатает в чат список загруженных команд."
+                    vec(255,255,255), "Печатает в чат список загруженных команд."
                 )
             )
             
             duplicatorAddCommamd(
                 "проверить обновления",
                 array(
-                    vec( 255 , 255 , 255 ), "Отправляет запрос на загрузку страницы с последней оригинальной версией кода. Если страница будет загружена, то вы сможете воспользоваться командой \"",
-                    vec( 150 , 150 , 255 ), "!обновить",
-                    vec( 255 , 255 , 255 ), "\""
+                    vec(255,255,255), "Отправляет запрос на загрузку страницы с последней оригинальной версией кода. Если страница будет загружена, то вы сможете воспользоваться командой \"",
+                    vec(150,150,255), "!обновить",
+                    vec(255,255,255), "\""
                 )
             )
             duplicatorAddCommamd(
                 "обновить",
                 array(
-                    vec( 255 , 255 , 255 ), "Заменяет код чипа на код, который был загружен с сервера gitHub."
+                    vec(255,255,255), "Заменяет код чипа на код, который был загружен с сервера gitHub."
                 )
             )
             
             duplicatorAddCommamd(
                 "выделить",
                 array(
-                    vec( 255 , 255 , 255 ), "Определяет позицию выделения."
+                    vec(255,255,255), "Определяет позицию выделения."
                 )
             )
             duplicatorAddCommamd(
                 "радиус",
                 array(
-                    vec( 255 , 255 , 255 ), "Определяет радиус сферического выделения."
+                    vec(255,255,255), "Определяет радиус сферического выделения."
                 )
             )
             duplicatorAddCommamd(
                 "сканировать",
                 array(
-                    vec( 255 , 255 , 255 ), "Сканирует выделенную область."
+                    vec(255,255,255), "Сканирует выделенную область."
                 )
             )
             
             
             function duplicatorPrintCommads() {
-                printSistem(array(vec( 255 ), "Список команд: "))
+                local CommandList = Duplicator["commads/list", array]
+                printSistem(array(
+                    vec(255,255,255), "Список команд(" + CommandList:count() + "): "
+                ))
                 Duplicator["printSistem/prints/noAddE2Name", number] = 1
                 
-                foreach(C, Command:string = Duplicator["commads/list", array]) {
+                foreach(C, Command:string = CommandList) {
                     printSistem(
                         array(
-                            vec( 255 , 255 , 255 ), C + ". \"",
-                            vec( 150 , 150 , 255 ), "!" + Command,
-                            vec( 255 , 255 , 255 ), "\" "
+                            vec(255,255,255), C + ". \"",
+                            vec(150,150,255), "!" + Command,
+                            vec(255,255,255), "\" "
                         ):add(Duplicator["commads/" + Command + "/description", array])
                     )
                 }
@@ -138,12 +156,9 @@ if(chatClk()) {
                 case "выделить",
                     Duplicator["scanSistem/selectionArea/type", string] = "sphere"
                     Duplicator["scanSistem/selectionArea/sphere/centerPos", vector] = O:aimPos()
-                    printSistem(
-                        array(
-                            vec( 255 , 255 , 255 ), "Новое место выделено"
-                            
-                        )
-                    )
+                    printSistem(array(
+                        vec(255,255,255), "Новое место выделено"
+                    ))
                 break
                 case "радиус",
                     local Arg1 = Explode[2, string]
@@ -171,33 +186,23 @@ if(chatClk()) {
                     }
                     
                     
-                    local LastNumber = Radius:toString():right(1):toNumber()
-                    if(LastNumber == 1) {
-                    }
-                    elseif(LastNumber == 0 | LastNumber >= 5) {
-                        Text = Text + "ов"
-                    }
-                    else {
-                        Text = Text + "а"
-                    }
-                    
-                    
+                    Text = Text + numToStringEnding(Radius)
                     if(!Print) {
                         Duplicator["scanSistem/selectionArea/sphere/radius", number] = ArgNumber
                         printSistem(
                             array(
-                                vec( 255 , 255 , 255 ), "Радиус сканирования изменён на ",
-                                vec( 255 , 120 , 120 ), Radius,
-                                vec( 255 , 255 , 255 ), Text
+                                vec(255,255,255), "Радиус сканирования изменён на ",
+                                vec(255,120,120), Radius,
+                                vec(255,255,255), Text
                             )
                         )
                     }
                     else {
                         printSistem(
                             array(
-                                vec( 255 , 255 , 255 ), "Текущий радиус ",
-                                vec( 255 , 120 , 120 ), Radius,
-                                vec( 255 , 255 , 255 ), Text
+                                vec(255,255,255), "Текущий радиус ",
+                                vec(255,120,120), Radius,
+                                vec(255,255,255), Text
                                 
                             )
                         )
@@ -206,12 +211,30 @@ if(chatClk()) {
                 case "сканировать",
                     local Arg1 = Explode[2, string]
                     
-                    printSistem(
-                        array(
-                            vec( 255 , 255 , 255 ), ""
-                            
-                        )
-                    )
+                    local AreaSelectType = Duplicator["scanSistem/selectionArea/type", string]
+                    findClearBlackList()
+                    findClearWhiteList()
+                    findIncludeClass("prop")
+                    findIncludeClass("wire_holo")
+                    
+                    switch(AreaSelectType) {
+                    case "sphere",
+                        local Pos = Duplicator["scanSistem/selectionArea/sphere/centerPos", vector]
+                        local Radius = Duplicator["scanSistem/selectionArea/sphere/radius", number]
+                        local Count = findInSphere(Pos, Radius)
+                        Duplicator["find", array] = findToArray()
+                        printSistem(array(
+                            vec(255,255,255), "Обнаружено ",
+                            vec(100,100,255), Count,
+                            vec(255,255,255), " объект" + numToStringEnding(Count)
+                        ))
+                    break
+                    default,
+                        printSistem(array(
+                            vec(255, 60, 60), "Ошибка: неверный тип выделения!"
+                        ))
+                    break
+                    }
                 break
                 #
                 #- 
@@ -222,8 +245,8 @@ if(chatClk()) {
                         Duplicator["update/act", string] = "request"
                         printSistem(
                             array(
-                                vec( 100 , 100 , 255 ), "[Система обновлений] ",
-                                vec( 255 , 255 , 255 ), "Начинаю поиск обновлений"
+                                vec(100,100,255), "[Система обновлений] ",
+                                vec(255,255,255), "Начинаю поиск обновлений"
                             )
                         )
                     }
@@ -239,25 +262,25 @@ if(chatClk()) {
                                 Duplicator["update/act", string] = "update"
                                 printSistem(
                                     array(
-                                        vec( 100 , 100 , 255 ), "[Система обновлений] ",
-                                        vec( 255 , 255 , 255 ), "Код чипа будет заменён на новый. После замены кода откройте чип и сохраните новую версию."
+                                        vec(100,100,255), "[Система обновлений] ",
+                                        vec(255,255,255), "Код чипа будет заменён на новый. После замены кода откройте чип и сохраните новую версию."
                                     )
                                 )
                             #else
                                 printSistem(
                                     array(
-                                        vec( 100 , 100 , 255 ), "[Система обновлений] ",
-                                        vec( 255 , 255 , 255 ), "Невозможно заменить код. Не работает функция ",
+                                        vec(100,100,255), "[Система обновлений] ",
+                                        vec(255,255,255), "Невозможно заменить код. Не работает функция ",
                                         
-                                        vec( 130 , 130 , 255 ), "entity",
-                                        vec( 255 , 255 , 255 ), ":",
-                                        vec( 130 , 130 , 255 ), "remoteSetCode",
-                                        vec( 255 , 255 , 255 ), "(",
-                                        vec( 130 , 130 , 255 ), "string",
-                                        vec( 255 , 255 , 255 ), ")",
+                                        vec(130,130,255), "entity",
+                                        vec(255,255,255), ":",
+                                        vec(130,130,255), "remoteSetCode",
+                                        vec(255,255,255), "(",
+                                        vec(130,130,255), "string",
+                                        vec(255,255,255), ")",
                                         
-                                        vec( 255 , 255 , 255 ), "\nВы можете загрузить код, самостоятельно перейдя по ссылке ",
-                                        vec( 100 , 255 , 100 ), Duplicator["update/url", string]
+                                        vec(255,255,255), "\nВы можете загрузить код, самостоятельно перейдя по ссылке ",
+                                        vec(100,255,100), Duplicator["update/url", string]
                                     )
                                 )
                             #endif
@@ -265,8 +288,8 @@ if(chatClk()) {
                         else {
                             printSistem(
                                 array(
-                                    vec( 100 , 100 , 255 ), "[Система обновлений] ",
-                                    vec( 255 , 255 , 255 ), "Не имеет смысла. Коды абсолютно идентичны!"
+                                    vec(100,100,255), "[Система обновлений] ",
+                                    vec(255,255,255), "Не имеет смысла. Коды абсолютно идентичны!"
                                 )
                             )
                         }
@@ -274,8 +297,8 @@ if(chatClk()) {
                     else {
                         printSistem(
                             array(
-                                vec( 100 , 100 , 255 ), "[Система обновлений] ",
-                                vec( 255 , 255 , 255 ), "Невозможно. Осутствует файл."
+                                vec(100,100,255), "[Система обновлений] ",
+                                vec(255,255,255), "Невозможно. Осутствует файл."
                             )
                         )
                     }
@@ -286,9 +309,9 @@ if(chatClk()) {
                 default,
                     printSistem(
                         array(
-                            vec( 255 , 255 , 255 ), "Напишите ",
-                            vec( 150 , 150 , 255 ), "!команды",
-                            vec( 255 , 255 , 255 ), " чтобы получить список команд." 
+                            vec(255,255,255), "Напишите ",
+                            vec(150,150,255), "!команды",
+                            vec(255,255,255), " чтобы получить список команд." 
                         )
                     )
                 break
@@ -311,8 +334,8 @@ if(clk("isNotInclude") | httpClk()) {
                 
                 printSistem(
                     array(
-                        vec( 100 , 100 , 255 ), "[Система обновлений] ",
-                        vec( 255 , 255 , 255 ), "Код был успешно загружен и запущен"
+                        vec(100,100,255), "[Система обновлений] ",
+                        vec(255,255,255), "Код был успешно загружен и запущен"
                     )
                 )
             }
@@ -328,8 +351,8 @@ if(clk("isNotInclude") | httpClk()) {
                 Duplicator["update/act", string] = "waitingForResponse"
                 printSistem(
                     array(
-                        vec( 100 , 100 , 255 ), "[Система обновлений] ",
-                        vec( 255 , 255 , 255 ), "Запрос отправлен"
+                        vec(100,100,255), "[Система обновлений] ",
+                        vec(255,255,255), "Запрос отправлен"
                     )
                 )
             }
@@ -343,16 +366,16 @@ if(clk("isNotInclude") | httpClk()) {
                     if(Code != HttpData) {
                         printSistem(
                             array(
-                                vec( 100 , 100 , 255 ), "[Система обновлений] ",
-                                vec( 255 , 255 , 255 ), "Файл получен. Ваш код отличается от последней оригинальной версии."
+                                vec(100,100,255), "[Система обновлений] ",
+                                vec(255,255,255), "Файл получен. Ваш код отличается от последней оригинальной версии."
                             )
                         )
                     }
                     else {
                         printSistem(
                             array(
-                                vec( 100 , 100 , 255 ), "[Система обновлений] ",
-                                vec( 255 , 255 , 255 ), "Файл получен. Ваш код не отличается от последней оригинальной версии."
+                                vec(100,100,255), "[Система обновлений] ",
+                                vec(255,255,255), "Файл получен. Ваш код не отличается от последней оригинальной версии."
                             )
                         )
                     }
@@ -360,7 +383,7 @@ if(clk("isNotInclude") | httpClk()) {
                 else {
                     printSistem(
                         array(
-                            vec( 255 , 255 , 255 ), "Файл получен, он пуст"
+                            vec(255,255,255), "Файл получен, он пуст"
                         )
                     )
                 }
@@ -380,8 +403,8 @@ if(clk("isNotInclude") | httpClk()) {
                     else {
                         printSistem(
                             array(
-                                vec( 100 , 100 , 255 ), "[Система обновлений] ",
-                                vec( 255 , 255 , 255 ), "Невозможно заменить код. Осутствует файл."
+                                vec(100,100,255), "[Система обновлений] ",
+                                vec(255,255,255), "Невозможно заменить код. Осутствует файл."
                             )
                         )
                         Duplicator["update/act", string] == ""
@@ -389,18 +412,18 @@ if(clk("isNotInclude") | httpClk()) {
                 #else
                     printSistem(
                         array(
-                            vec( 100 , 100 , 255 ), "[Система обновлений] ",
-                            vec( 255 , 255 , 255 ), "Невозможно заменить код. Не работает функция ",
+                            vec(100,100,255), "[Система обновлений] ",
+                            vec(255,255,255), "Невозможно заменить код. Не работает функция ",
                             
-                            vec( 130 , 130 , 255 ), "entity",
-                            vec( 255 , 255 , 255 ), ":",
-                            vec( 130 , 130 , 255 ), "remoteSetCode",
-                            vec( 255 , 255 , 255 ), "(",
-                            vec( 130 , 130 , 255 ), "string",
-                            vec( 255 , 255 , 255 ), ")",
+                            vec(130,130,255), "entity",
+                            vec(255,255,255), ":",
+                            vec(130,130,255), "remoteSetCode",
+                            vec(255,255,255), "(",
+                            vec(130,130,255), "string",
+                            vec(255,255,255), ")",
                             
-                            vec( 255 , 255 , 255 ), "\n Вы можете загрузить код, самостоятельно перейдя по ссылке ",
-                            vec( 100 , 255 , 100 ), Duplicator["update/url", string]
+                            vec(255,255,255), "\n Вы можете загрузить код, самостоятельно перейдя по ссылке ",
+                            vec(100,255,100), Duplicator["update/url", string]
                         )
                     )
                     Duplicator["update/act", string] == ""
