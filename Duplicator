@@ -9,37 +9,39 @@ if(changed(0)) {
         runOnChat(1)
         runOnFile(1)
         timer("printSistem", 1)
+        timer("update", 1)
+        timer("file", 1)
     #
     
     
     
-    
     local E = entity()
-    local O = Duplicator["owner", entity] = owner()
+    local O = owner()
     
     GDuplicator = gTable(O:name() + "/duplicator")
     
+    #[
+    Duplicator["owner", entity] = O
+    
     if(E:getName() == "Duplicator") {
         #Duplicator["isInclude", number] = 0
-        timer("isNotInclude", 1)
+        timer("update", 1)
     }
     else {
         #Duplicator["isInclude", number] = 1
         #timer("isInclude", 1)
     }
+    ]#
     
-    
-    #function printSistem() {Duplicator["printSistem/prints/noAddE2Name", number] = 1}
-    function printSistem([ColorText]:array) {
+    #Duplicator["printSistem/prints/noAddE2Name", number] = 1
+    function printSistem([AddColorText]:array) {
+        local ColorText = Duplicator["printSistem/colorText", array]
         if(Duplicator["printSistem/prints/noAddE2Name", number]) {
-            #Duplicator["printSistem/prints/noAddE2Name", number] = 0
         }
         else {
-            ColorText = array(vec( 30,255, 30), "[Duplicator] "):add(ColorText)
+            AddColorText = array(vec( 30,255, 30), "[Duplicator] "):add(AddColorText)
         }
-        local PrintID = Duplicator["printSistem/prints", number] = Duplicator["printSistem/prints", number] + 1
-        Duplicator["printSistem/printList", array] = Duplicator["printSistem/printList", array]:add(array( PrintID ))
-        Duplicator["printSistem/print" + PrintID + "/colorText", array] = ColorText
+        Duplicator["printSistem/colorText", array] = ColorText:add(AddColorText):add(array("\n"))
     }
 }
 
@@ -73,7 +75,7 @@ if(chatClk()) {
                     Duplicator["commads/" + Command + "/description", array] = Description
                     
                     
-                    
+                    Duplicator["commads/" + Command, number] = Duplicator["commads/list", array]:count()
                 }
             }
             duplicatorAddCommamd(
@@ -82,7 +84,9 @@ if(chatClk()) {
                     vec(255,255,255), "Печатает в чат список загруженных команд."
                 )
             )
-            
+            #
+            #- 
+            #
             duplicatorAddCommamd(
                 "проверить обновления",
                 array(
@@ -97,7 +101,9 @@ if(chatClk()) {
                     vec(255,255,255), "Заменяет код чипа на код, который был загружен с сервера gitHub."
                 )
             )
-            
+            #
+            #- 
+            #
             duplicatorAddCommamd(
                 "выделить",
                 array(
@@ -116,6 +122,27 @@ if(chatClk()) {
                     vec(255,255,255), "Сканирует выделенную область."
                 )
             )
+            #
+            #- 
+            #
+            duplicatorAddCommamd(
+                "назвать",
+                array(
+                    vec(255,255,255), "Создаёт название для сохранения."
+                )
+            )
+            duplicatorAddCommamd(
+                "сохранить",
+                array(
+                    vec(255,255,255), "Сохраняет отсканированное."
+                )
+            )
+            duplicatorAddCommamd(
+                "загрузить",
+                array(
+                    vec(255,255,255), "Загружает сохранённое."
+                )
+            )
             
             
             function duplicatorPrintCommads() {
@@ -123,18 +150,15 @@ if(chatClk()) {
                 printSistem(array(
                     vec(255,255,255), "Список команд(" + CommandList:count() + "): "
                 ))
+                
                 Duplicator["printSistem/prints/noAddE2Name", number] = 1
-                
                 foreach(C, Command:string = CommandList) {
-                    printSistem(
-                        array(
-                            vec(255,255,255), C + ". \"",
-                            vec(150,150,255), "!" + Command,
-                            vec(255,255,255), "\" "
-                        ):add(Duplicator["commads/" + Command + "/description", array])
-                    )
+                    printSistem(array(
+                        vec(255,255,255), C + ". \"",
+                        vec(150,150,255), "!" + Command,
+                        vec(255,255,255), "\" "
+                    ):add(Duplicator["commads/" + Command + "/description", array]))
                 }
-                
                 Duplicator["printSistem/prints/noAddE2Name", number] = 0
             }
         }
@@ -152,7 +176,9 @@ if(chatClk()) {
                 case "команды",
                     duplicatorPrintCommads()
                 break
-                
+                #
+                #- 
+                #
                 case "выделить",
                     Duplicator["scanSistem/selectionArea/type", string] = "sphere"
                     Duplicator["scanSistem/selectionArea/sphere/centerPos", vector] = O:aimPos()
@@ -218,37 +244,51 @@ if(chatClk()) {
                     findIncludeClass("wire_holo")
                     
                     switch(AreaSelectType) {
-                    case "sphere",
-                        local Pos = Duplicator["scanSistem/selectionArea/sphere/centerPos", vector]
-                        local Radius = Duplicator["scanSistem/selectionArea/sphere/radius", number]
-                        local Count = findInSphere(Pos, Radius)
-                        Duplicator["find", array] = findToArray()
-                        printSistem(array(
-                            vec(255,255,255), "Обнаружено ",
-                            vec(100,100,255), Count,
-                            vec(255,255,255), " объект" + numToStringEnding(Count)
-                        ))
-                    break
-                    default,
-                        printSistem(array(
-                            vec(255, 60, 60), "Ошибка: неверный тип выделения!"
-                        ))
-                    break
+                        case "sphere",
+                            local Pos = Duplicator["scanSistem/selectionArea/sphere/centerPos", vector]
+                            local Radius = Duplicator["scanSistem/selectionArea/sphere/radius", number]
+                            local Count = findInSphere(Pos, Radius)
+                            Duplicator["find", array] = findToArray()
+                            printSistem(array(
+                                vec(255,255,255), "Обнаружено ",
+                                vec(100,100,255), Count,
+                                vec(255,255,255), " объект" + numToStringEnding(Count)
+                            ))
+                        break
+                        default,
+                            printSistem(array(
+                                vec(255, 60, 60), "Ошибка: неверный тип выделения!"
+                            ))
+                        break
                     }
                 break
                 #
                 #- 
                 #
                 case "проверить",
-                    local Arg1 = Explode[2, string]
-                    if(Arg1 == "обновления") {
-                        Duplicator["update/act", string] = "request"
-                        printSistem(
-                            array(
-                                vec(100,100,255), "[Система обновлений] ",
-                                vec(255,255,255), "Начинаю поиск обновлений"
+                    local Arg2 = Explode[2, string]
+                    switch(Arg2) {
+                        case "обновления",
+                            Duplicator["update/act", string] = "request"
+                            printSistem(
+                                array(
+                                    vec(100,100,255), "[Система обновлений] ",
+                                    vec(255,255,255), "Начинаю поиск обновлений"
+                                )
                             )
-                        )
+                        break
+                        default,
+                            if(changed(0)) {
+                                printSistem(array(
+                                    vec(255,255,255), "Что, простите?"
+                                ))
+                            }
+                            else {
+                                printSistem(array(
+                                    vec(255,255,255), "Проверить что?"
+                                ))
+                            }
+                        break
                     }
                 break
                 case "обновить",
@@ -307,13 +347,20 @@ if(chatClk()) {
                 #- 
                 #
                 default,
-                    printSistem(
-                        array(
-                            vec(255,255,255), "Напишите ",
-                            vec(150,150,255), "!команды",
-                            vec(255,255,255), " чтобы получить список команд." 
+                    if(Duplicator["commads/" + Command, number]) {
+                        printSistem(array(
+                            vec(255,255,255), "Этой команде не назначено действие, вознможно, она еще на стадии разработки."
+                        ))
+                    }
+                    else {
+                        printSistem(
+                            array(
+                                vec(255,255,255), "Напишите ",
+                                vec(150,150,255), "!команды",
+                                vec(255,255,255), " чтобы получить список команд." 
+                            )
                         )
-                    )
+                    }
                 break
             }
         }
@@ -321,8 +368,8 @@ if(chatClk()) {
 }
 
 
-if(clk("isNotInclude") | httpClk()) {
-        timer("isNotInclude", 50)
+if(clk("update") | httpClk()) {
+        timer("update", 50)
     
     if(changed(0)) {
             runOnHTTP(1)
@@ -436,7 +483,24 @@ if(clk("isNotInclude") | httpClk()) {
     }
 }
 
- 
+if(clk("file") | fileClk()) {
+        timer("file", 1)
+    
+    if(changed(0)) {
+            runOnFile(1)
+        
+        switch(Duplicator["file/act", string]) {
+            case "",
+                
+            break
+            default,
+                
+            break
+        }
+    }
+}
+
+
 
 
 
@@ -445,13 +509,10 @@ if(clk("isNotInclude") | httpClk()) {
 if(clk("printSistem")) {
         timer("printSistem", 350)
     
-    local Massages = Duplicator["printSistem/printList", array]
-    local Count = Massages:count()
+    local ColorText = Duplicator["printSistem/colorText", array]
+    local Count = ColorText:count()
     if(Count) {
-        local PrintID = Massages[1, number]
-        local ColorText = Duplicator["printSistem/print" + PrintID + "/colorText", array]
-        printColor( ColorText )
-        
-        Duplicator["printSistem/printList", array]:remove(1)
+        printColor(ColorText)
+        Duplicator["printSistem/colorText", array]:clear()
     }
 }
