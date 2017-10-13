@@ -1,7 +1,7 @@
 @name Duplicator
 @inputs 
 @outputs 
-@persist [Duplicator]:table [GDuplicator]:gtable
+@persist [Duplicator Library]:table [GDuplicator]:gtable
 
 
 
@@ -51,7 +51,8 @@ if(chatClk()) {
     
     if(chatClk(O)) {
         if(changed(0)) {
-            Duplicator["scanSistem/selectionArea/sphere/radius", number] = 5 * 52.5
+            Duplicator["scanSistem/selectionArea/sphere/radius/u", number] = 5 * 52.5
+            Duplicator["scanSistem/selectionArea/sphere/radius/m", number] = 5
             
             
                     
@@ -143,6 +144,12 @@ if(chatClk()) {
                     vec(255,255,255), "Загружает сохранённое."
                 )
             )
+            duplicatorAddCommamd(
+                "прервать",
+                array(
+                    vec(255,255,255), "Прерывает указанную процедуру."
+                )
+            )
             
             
             function duplicatorPrintCommads() {
@@ -187,34 +194,35 @@ if(chatClk()) {
                     ))
                 break
                 case "радиус",
-                    local Arg1 = Explode[2, string]
+                    local Arg2 = Explode[2, string]
                     local Text = " source юнит"
-                    local ArgNumber = Arg1:toNumber()
+                    local Arg2Number = Arg2:toNumber()
                     local ToMetr = 0
                     local Print = 0
                     
-                    if(Arg1:right(2) == "м" | Explode[3, string] == "м") {
+                    if(Arg2:right(2) == "м" | Explode[3, string] == "м") {
                         Text = " метр"
                         ToMetr = 1
-                        ArgNumber = round( ArgNumber / toUnit("m", 1) )
+                        Arg2Number = round( Arg2Number / toUnit("m", 1) ,1)
                     }
                     
-                    if(!ArgNumber) {
+                    if(!Arg2Number) {
                         Print = 1
-                        ArgNumber = Duplicator["scanSistem/selectionArea/sphere/radius", number]
+                        Arg2Number = Duplicator["scanSistem/selectionArea/sphere/radius/u", number]
                     }
                     if(ToMetr) {
-                        Radius    = round( ArgNumber * toUnit("m", 1) )
-                        ArgNumber = round( Radius    / toUnit("m", 1) )
+                        Radius    = round( Arg2Number * toUnit("m", 1) ,1)
+                        Arg2Number = round( Radius    / toUnit("m", 1) ,1)
                     }
                     else {
-                        Radius = round( ArgNumber )
+                        Radius = round( Arg2Number ,1)
                     }
                     
                     
                     Text = Text + numToStringEnding(Radius)
                     if(!Print) {
-                        Duplicator["scanSistem/selectionArea/sphere/radius", number] = ArgNumber
+                        Duplicator["scanSistem/selectionArea/sphere/radius/u", number] = Arg2Number
+                        Duplicator["scanSistem/selectionArea/sphere/radius/m", number] = Radius
                         printSistem(
                             array(
                                 vec(255,255,255), "Радиус сканирования изменён на ",
@@ -246,9 +254,17 @@ if(chatClk()) {
                     switch(AreaSelectType) {
                         case "sphere",
                             local Pos = Duplicator["scanSistem/selectionArea/sphere/centerPos", vector]
-                            local Radius = Duplicator["scanSistem/selectionArea/sphere/radius", number]
-                            local Count = findInSphere(Pos, Radius)
-                            Duplicator["find", array] = findToArray()
+                            local Radius_u = Duplicator["scanSistem/selectionArea/sphere/radius/u", number]
+                            local Count = findInSphere(Pos, Radius_u)
+                            Duplicator["scanSistem/scaned/entityNumber", number] = Count
+                            Duplicator["scanSistem/scaned/entityList", array] = findToArray()
+                            
+                            printSistem(array(
+                                vec(255,255,255), "Сканирование в \"",
+                                vec(255,120,120), AreaSelectType,
+                                vec(255,255,255), "\" в радиусе ",
+                                vec(255,120,120), Radius + "u"
+                            ))
                             printSistem(array(
                                 vec(255,255,255), "Обнаружено ",
                                 vec(100,100,255), Count,
@@ -265,17 +281,106 @@ if(chatClk()) {
                 #
                 #- 
                 #
+                case "нзвать",
+                    
+                break
+                case "!сохранить",
+                    
+                    #[
+                    Duplicator["file/procedure", string] = "file"
+                    Duplicator["file/toSave/entityNumber", number] = Duplicator["scanSistem/scaned/entityNumber", number]
+                    Duplicator["file/toSave/entityList", array] = Duplicator["scanSistem/scaned/entityList", array]
+                    ]#
+                    
+                break
+                case "загрузить",
+                    local Arg2 = Explode[2, string]
+                    if(Arg2 == "библиотеку") {
+                        local Arg3 = Explode[3, string]
+                        if(Arg3) {
+                            Arg3 = Explode:concat(" ", 3)
+                        }
+                        else {
+                            Arg3 = "default"
+                        }
+                        local GO = 1
+                        local Procedure = Duplicator["file/procedure", string]
+                        if(Procedure) {
+                            local Procedure_VN = Duplicator["displayName#" + Procedure, string]
+                            printSistem(array(
+                                vec(100,100,255), "[Файловая система] ",
+                                vec(255, 60, 60), "Невозможно начать загрузку библиотеки!",
+                                vec(255,255,255), " Причина: активна файловая процедура \"",
+                                vec(255,120,120), (Procedure_VN ? Procedure_VN : Procedure),
+                                vec(255,255,255), "\""
+                            ))
+                        }
+                        else {
+                            Duplicator["file/procedure", string] = "fileLoad"
+                            Duplicator["file/load/filename", string] = "Duplicator#" + Arg3 #+".txt"
+                            
+                            
+                            printSistem(array(
+                                vec(100,100,255), "[Файловая система] ",
+                                vec(255,255,255), "Начинаю загрузку бибилиотеки \"",
+                                vec(255,120,120), "Duplicator#" + Arg3,
+                                vec(255,255,255), "\""
+                            ))
+                        }
+                    }
+                break
+                #
+                #- 
+                #
+                case "прервать",
+                    local Arg2 = Explode[2, string]
+                    switch(Arg2) {
+                        case "загрузку",
+                            local FileName = Duplicator["file/load/filename", string]
+                            if(FileName) {
+                                printSistem(array(
+                                    vec(100,100,255), "[Файловая система] ",
+                                    vec(255,255,255), "Преравана загрузка библиотеки \"",
+                                    vec(255,120,120), FileName,
+                                    vec(255,255,255), "\""
+                                ))
+                                Duplicator["file/procedure", string] = ""
+                                Duplicator["file/fileLoad/step", string] = ""
+                                Duplicator["file/load/filename", string] = ""
+                            }
+                            else {
+                                printSistem(array(
+                                    vec(100,100,255), "[Файловая система] ",
+                                    vec(255,255,255), "В данный момент нет никаких процедур"
+                                ))
+                            }
+                        break
+                        default,
+                            if(changed(0)) {
+                                printSistem(array(
+                                    vec(255,255,255), "Что, простите?"
+                                ))
+                            }
+                            else {
+                                printSistem(array(
+                                    vec(255,255,255), "Что прервать?"
+                                ))
+                            }
+                        break
+                    }
+                break
+                #
+                #- 
+                #
                 case "проверить",
                     local Arg2 = Explode[2, string]
                     switch(Arg2) {
                         case "обновления",
-                            Duplicator["update/act", string] = "request"
-                            printSistem(
-                                array(
-                                    vec(100,100,255), "[Система обновлений] ",
-                                    vec(255,255,255), "Начинаю поиск обновлений"
-                                )
-                            )
+                            Duplicator["update/procedure", string] = "request"
+                            printSistem(array(
+                                vec(100,100,255), "[Система обновлений] ",
+                                vec(255,255,255), "Начинаю поиск обновлений"
+                            ))
                         break
                         default,
                             if(changed(0)) {
@@ -299,7 +404,7 @@ if(chatClk()) {
                         
                         if(HttpData != Code) {
                             #ifdef entity:remoteSetCode(string)
-                                Duplicator["update/act", string] = "update"
+                                Duplicator["update/procedure", string] = "update"
                                 printSistem(
                                     array(
                                         vec(100,100,255), "[Система обновлений] ",
@@ -390,12 +495,12 @@ if(clk("update") | httpClk()) {
         }
     }
     
-    switch(Duplicator["update/act", string]) {
+    switch(Duplicator["update/procedure", string]) {
         case "request",
             if(httpCanRequest()) {
                 httpRequest(Duplicator["update/url", string])
                 
-                Duplicator["update/act", string] = "waitingForResponse"
+                Duplicator["update/procedure", string] = "waitingForResponse"
                 printSistem(
                     array(
                         vec(100,100,255), "[Система обновлений] ",
@@ -414,15 +519,19 @@ if(clk("update") | httpClk()) {
                         printSistem(
                             array(
                                 vec(100,100,255), "[Система обновлений] ",
-                                vec(255,255,255), "Файл получен. Ваш код отличается от последней оригинальной версии."
-                            )
+                                vec(255,255,255), "Файл получен. Ваш код ",
+                                vec(255, 60, 60), " отличается",
+                                vec(255,255,255), " от последней оригинальной версии."
+                           )
                         )
                     }
                     else {
                         printSistem(
                             array(
                                 vec(100,100,255), "[Система обновлений] ",
-                                vec(255,255,255), "Файл получен. Ваш код не отличается от последней оригинальной версии."
+                                vec(255,255,255), "Файл получен. Ваш код ",
+                                vec(255, 60, 60), "не отличается",
+                                vec(255,255,255), " от последней оригинальной версии."
                             )
                         )
                     }
@@ -434,7 +543,7 @@ if(clk("update") | httpClk()) {
                         )
                     )
                 }
-                Duplicator["update/act", string] == ""
+                Duplicator["update/procedure", string] == ""
             }
         break
         case "update",
@@ -454,7 +563,7 @@ if(clk("update") | httpClk()) {
                                 vec(255,255,255), "Невозможно заменить код. Осутствует файл."
                             )
                         )
-                        Duplicator["update/act", string] == ""
+                        Duplicator["update/procedure", string] == ""
                     }
                 #else
                     printSistem(
@@ -473,7 +582,7 @@ if(clk("update") | httpClk()) {
                             vec(100,255,100), Duplicator["update/url", string]
                         )
                     )
-                    Duplicator["update/act", string] == ""
+                    Duplicator["update/procedure", string] == ""
                 #endif
             }
             else {
@@ -489,14 +598,50 @@ if(clk("file") | fileClk()) {
     if(changed(0)) {
             runOnFile(1)
         
-        switch(Duplicator["file/act", string]) {
-            case "",
-                
-            break
-            default,
-                
-            break
-        }
+    }
+    
+    
+    switch(Duplicator["file/procedure", string]) {
+        
+        case "fileLoad",
+            local Step = Duplicator["file/fileLoad/step", string]
+            switch(Step) {
+                case "fileRequest",
+                    if(fileCanLoad()) {
+                        
+                        local File_n = Duplicator["file/load/filename", string]
+                        fileLoad(File_n)
+                        Duplicator["file/fileLoad/step", string] = "waitingFile"
+                        printSistem(array(
+                            vec(100,100,255), "[Файловая система] ",
+                            vec(255,255,255), "Запрос отправлен, ожидается файл"
+                        ))
+                    }
+                break
+                case "waitingFile",
+                    if(fileClk()) {
+                        
+                        local File_n = Duplicator["file/load/filename", string]
+                        printSistem(array(
+                            vec(100,100,255), "[Файловая система] ",
+                            vec(255,255,255), "Файл \"",
+                            vec(255,120,120), File_n,
+                            vec(255,255,255), "\"  получен"
+                        ))
+                        print(fileReadList())
+                    }
+                break
+                default,
+                    Duplicator["file/fileLoad/step", string] = "fileRequest"
+                break
+            }
+        break
+        #
+        #- 
+        #
+        default,
+            #Duplicator["file/procedure", string] = ""
+        break
     }
 }
 
