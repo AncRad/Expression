@@ -285,13 +285,40 @@ if(chatClk()) {
                     
                 break
                 case "!сохранить",
-                    
-                    #[
-                    Duplicator["file/procedure", string] = "file"
-                    Duplicator["file/toSave/entityNumber", number] = Duplicator["scanSistem/scaned/entityNumber", number]
-                    Duplicator["file/toSave/entityList", array] = Duplicator["scanSistem/scaned/entityList", array]
-                    ]#
-                    
+                    local Arg2 = Explode[2, string]
+                    if(Arg2 == "библиотеку") {
+                        local Arg3 = Explode[3, string]
+                        if(Arg3) {
+                            Arg3 = Explode:concat(" ", 3)
+                        }
+                        else {
+                            Arg3 = "default"
+                        }
+                        local GO = 1
+                        local Procedure = Duplicator["file/procedure", string]
+                        if(Procedure) {
+                            local Procedure_VN = Duplicator["displayName#" + Procedure, string]
+                            printSistem(array(
+                                vec(100,100,255), "[Файловая система] ",
+                                vec(255, 60, 60), "Невозможно начать загрузку библиотеки!",
+                                vec(255,255,255), " Причина: активна файловая процедура \"",
+                                vec(255,120,120), (Procedure_VN ? Procedure_VN : Procedure),
+                                vec(255,255,255), "\""
+                            ))
+                        }
+                        else {
+                            Duplicator["file/procedure", string] = "fileLoad"
+                            Duplicator["file/load/filename", string] = "Duplicator#" + Arg3 #+".txt"
+                            
+                            
+                            printSistem(array(
+                                vec(100,100,255), "[Файловая система] ",
+                                vec(255,255,255), "Начинаю загрузку бибилиотеки \"",
+                                vec(255,120,120), "Duplicator#" + Arg3,
+                                vec(255,255,255), "\""
+                            ))
+                        }
+                    }
                 break
                 case "загрузить",
                     local Arg2 = Explode[2, string]
