@@ -2,7 +2,7 @@
 
 @inputs 
 @outputs 
-@persist [E O]:entity [Duplicator]:table [GDuplicator]:gtable
+@persist [E O]:entity [Duplicator]:table [GDuplicator GLibrary]:gtable
 
 
 
@@ -10,18 +10,20 @@ if(changed(0)) {
     runOnFile(1)
     runOnChat(1)
     runOnHTTP(1)
-    timer("file", 1)
-    timer("print", 1)
-    timer("updater", 1)
+    timer("fileSistem", 1)
+    timer("printSistem", 1)
+    timer("updaterSistem", 1)
     
-    Duplicator["updater/request/maxTime", number] = 20
-    Duplicator["updater/wait/maxTime", number] = 20
+    Duplicator["updaterSistem/request/maxTime", number] = 20
+    Duplicator["updaterSistem/wait/maxTime", number] = 20
+    Duplicator["fileSistem/write/maxTime", number] = 20
+    Duplicator["fileSistem/load/maxTime", number] = 20
     
     E = entity()
     O = owner()
     
     function addPrint(Print:array) {
-        Duplicator["print", array] = Duplicator["print", array]:add(array(vec(255)):add(Print))
+        Duplicator["printSistem/print", array] = Duplicator["printSistem/print", array]:add(array(vec(255)):add(Print))
     }
     function addPrint(Print:string) {
         addPrint(array(Print))
@@ -29,77 +31,108 @@ if(changed(0)) {
     function addPrint(Color:vector, Print:string) {
         addPrint(array(Color, Print))
     }
-    ################
     #
     #
     #
-    ################
     function addPrintBlue(Print:array) {
         Print = array(vec(150,150,255)):add(Print:add(array(vec(255))))
-        Duplicator["print", array] = Duplicator["print", array]:add(Print)
+        Duplicator["printSistem/print", array] = Duplicator["printSistem/print", array]:add(Print)
     }
     function addPrintBlue(Print:string) {
         addPrintBlue(array(Print))
     }
     #
-    #
-    #
     function addPrintValue(Print:array) {
         Print = array(vec(255,120,120)):add(Print:add(array(vec(255))))
-        Duplicator["print", array] = Duplicator["print", array]:add(Print)
+        Duplicator["printSistem/print", array] = Duplicator["printSistem/print", array]:add(Print)
     }
     function addPrintValue(Print:string) {
         addPrintValue(array(Print))
     }
     #
-    #
-    #
     function addPrintRed(Print:array) {
         Print = array(vec(255,60,60)):add(Print:add(array(vec(255))))
-        Duplicator["print", array] = Duplicator["print", array]:add(Print)
+        Duplicator["printSistem/print", array] = Duplicator["printSistem/print", array]:add(Print)
     }
     function addPrintRed(Print:string) {
         addPrintRed(array(Print))
     }
     #
-    #
-    #
     function addPrintGreen(Print:array) {
         Print = array(vec(60,255,60)):add(Print:add(array(vec(255))))
-        Duplicator["print", array] = Duplicator["print", array]:add(Print)
+        Duplicator["printSistem/print", array] = Duplicator["printSistem/print", array]:add(Print)
     }
     function addPrintGreen(Print:string) {
         addPrintGreen(array(Print))
     }
-    ################
     #
     #
     #
-    ################
     function addPrintDuplicator(Print:array) {
-        Print = array(vec(30,255,30),(Duplicator["print", array]:count() ? "\n" : "") + "[Дубликатор] ",vec(255)):add(Print)
-        Duplicator["print", array] = Duplicator["print", array]:add(Print)
+        Print = array(vec(30,255,30),(Duplicator["printSistem/print", array]:count() ? "\n" : "") + "[Дубликатор] ",vec(255)):add(Print)
+        Duplicator["printSistem/print", array] = Duplicator["printSistem/print", array]:add(Print)
     }
     function addPrintDuplicator(Print:string) {
         addPrintDuplicator(array(Print))
     }
     #
-    #
-    #
     function addPrintUpdater(Print:array) {
         addPrintDuplicator("")
         addPrintBlue("[Система обновления] ")
-        Duplicator["print", array] = Duplicator["print", array]:add(Print)
+        Duplicator["printSistem/print", array] = Duplicator["printSistem/print", array]:add(Print)
     }
     function addPrintUpdater(Print:string) {
         addPrintUpdater(array(Print))
     }
-    
-    
+    #
+    function addPrintLibrary(Print:array) {
+        addPrintDuplicator("")
+        addPrintBlue("[Библиотека] ")
+        Duplicator["printSistem/print", array] = Duplicator["printSistem/print", array]:add(Print)
+    }
+    function addPrintLibrary(Print:string) {
+        addPrintLibrary(array(Print))
+    }
+    #
+    function addPrintFile(Print:array) {
+        addPrintDuplicator("")
+        addPrintBlue("[Файловая система] ")
+        Duplicator["printSistem/print", array] = Duplicator["printSistem/print", array]:add(Print)
+    }
+    function addPrintFile(Print:string) {
+        addPrintFile(array(Print))
+    }
     #
     #
     #
+    function addPrintRemoteSetCode() {
+        addPrint(vec(160,160,240), "entity")
+        addPrint(vec(224,224,224), ":")
+        addPrint(vec(160,160,240), "remoteSetCode")
+        addPrint(vec(224,224,224), "(")
+        addPrint(vec(160,160,240), "string")
+        addPrint(vec(224,224,224), ")")
+    }
+    ################
+    #
+    #
+    #
+    ################
+    function libraryGenerate(Library_n:string) {
+        local UTC = dateUTC()
+        
+        GLibrary:clear()
+        GLibrary["library/name", string] = Library_n
+        GLibrary["creator/name", string] = O:name()
+        GLibrary["creator/steamID", string] = O:steamID()
+        GLibrary["creator/dateUTC", table] = UTC
+        
+        #GLibrary["history", table] = table("1" = table("dateUTC" = UTC, "operation" = "libraryCreate", "autor/name" = O:name(), "creator/steamID" = O:steamID()))
+        
+        
+    }
     GDuplicator = gTable("Duplicator" + O:steamID())
+    GLibrary = gTable("DuplicatorLibrary" + O:steamID())
     local Entity = GDuplicator["entity", entity]
     if(Entity == E | !Entity) {
         addPrint(vec(0), "========================================")
@@ -109,6 +142,7 @@ if(changed(0)) {
             addPrint(" запущен, чип готов к работе.")
             addPrintUpdater("Не забудьте открыть чип и сохранить последнюю версию кода.")
             addPrintDuplicator("Спасибо за то, что вы с нами :>")
+            GLibrary:clear()
         }
         else {
             addPrintDuplicator("")
@@ -141,9 +175,9 @@ if(changed(0)) {
 if(chatClk(O)) {
     if(changed(0)) {
         function addChatCommand(Command:string, Description:array) {
-            Duplicator["commads/" + Command, number] = 1
-            Duplicator["commads/" + Command + "/description", array] = Description
-            Duplicator["commads/list", array] = Duplicator["commads/list", array]:add(array(Command))
+            Duplicator["commadSistem/" + Command, number] = 1
+            Duplicator["commadSistem/" + Command + "/description", array] = Description
+            Duplicator["commadSistem/list", array] = Duplicator["commadSistem/list", array]:add(array(Command))
         }
         
         addChatCommand(
@@ -166,10 +200,10 @@ if(chatClk(O)) {
                 vec(255,255,255), "Заменяет код чипа на код, который был загружен с сервера gitHub."
             )
         )
-        #[
         #
         #- 
         #
+        #[
         addChatCommand(
             "выделить",
             array(
@@ -194,6 +228,7 @@ if(chatClk(O)) {
                 vec(255,255,255), "Добавляет чертёж в библиотеку."
             )
         )
+        ]#
         #
         #- 
         #
@@ -221,23 +256,6 @@ if(chatClk(O)) {
                 vec(255,255,255), "Прерывает указанную процедуру."
             )
         )
-        
-        
-        function duplicatorPrintCommads() {
-            local CommandList = Duplicator["commads/list", array]
-            foreach(C, Command:string = CommandList) {
-                addPrint(array(
-                    vec(255,255,255), C + ". \"",
-                    vec(150,150,255), "!" + Command,
-                    vec(255,255,255), "\" "
-                ):add(Duplicator["commads/" + Command + "/description", array]))
-            }
-            
-            addPrint(array(
-                vec(255,255,255), "Список команд(" + CommandList:count() + "): "
-            ))
-        }
-        ]#
     }
     
     local LastSaid = O:lastSaid()
@@ -252,7 +270,7 @@ if(chatClk(O)) {
             #
             #
             case "команды",
-                local CommandList = Duplicator["commads/list", array]
+                local CommandList = Duplicator["commadSistem/list", array]
                 addPrintDuplicator("Список команд(")
                 addPrintValue(CommandList:count() + "")
                 addPrint("):")
@@ -261,18 +279,17 @@ if(chatClk(O)) {
                     addPrint(". \"")
                     addPrintBlue("!" + Command)
                     addPrint("\" ")
-                    addPrint(Duplicator["commads/" + Command + "/description", array])
+                    addPrint(Duplicator["commadSistem/" + Command + "/description", array])
                 }
             break
             #
             #
             #
             case "проверить",
-                local Arg2 = Explode[2, string]
-                switch(Arg2) {
+                switch(Explode[2, string]) {
                     case "обновления",
                         addPrintUpdater("Начинаю поиск обновлений")
-                        Duplicator["updater/procedure", string] = "request"
+                        Duplicator["updaterSistem/procedure", string] = "request"
                     break
                     #
                     #
@@ -285,7 +302,7 @@ if(chatClk(O)) {
             #
             #
             case "обновить",
-                local Update = Duplicator["updater/update", string]
+                local Update = Duplicator["updaterSistem/update", string]
                 if(Update) {
                     #ifdef entity:remoteSetCode(string)
                         addPrintUpdater("Код чипа будет заменён на новый, чип будет перезапущен. После перезапуска откройте чип и сохраните новый код.")
@@ -295,14 +312,9 @@ if(chatClk(O)) {
                         addPrintUpdater("")
                         addPrintRed("Ошибка обновления! ")
                         addPrint("Указана причина: отсутствует функция ")
-                        addPrint(vec(160,160,240), "entity")
-                        addPrint(vec(224,224,224), ":")
-                        addPrint(vec(160,160,240), "remoteSetCode")
-                        addPrint(vec(224,224,224), "(")
-                        addPrint(vec(160,160,240), "string")
-                        addPrint(vec(224,224,224), ")")
+                        addPrintRemoteSetCode()
                         addPrintUpdater("Вы можете загрузить файл самостоятельно, перейдя по ссылке ")
-                        addPrintValue(Duplicator["updater/url", string])
+                        addPrintValue(Duplicator["updaterSistem/url", string])
                     #endif
                 }
                 else {
@@ -311,11 +323,141 @@ if(chatClk(O)) {
                     addPrint("Указана причина: отсутствует файл обновления")
                 }
             break
+            ################
+            #
+            #
+            #
+            ################
+            case "создать",
+                switch(Explode[2, string]) {
+                    case "библиотеку",
+                        local Library_n = Explode:concat(" ", 3)
+                        if(Library_n) {
+                            addPrintLibrary("Библиотека \"")
+                            addPrintValue(Library_n)
+                            addPrint("\" сгенерирована. Не забудьте сохранить.")
+                            
+                            libraryGenerate(Library_n)
+                            
+                        }
+                        else {
+                            addPrintDuplicator("")
+                            addPrintRed("Ошибка создания библиотеки. ")
+                            addPrint("Указана причина: не указано название библиотеки.")
+                        }
+                    break
+                    #
+                    #
+                    default,
+                        addPrintDuplicator("Создать что?")
+                    break
+                }
+            break
+            #
+            #
+            #
+            case "сохранить",
+                switch(Explode[2, string]) {
+                    case "библиотеку",
+                        local Library_n = GLibrary["library/name", string]
+                        if(Library_n) {
+                            if(Explode:concat(" ", 3,4) == "в чип") {
+                                    local E2 = O:aimEntity()
+                                    if(E2:type() == "gmod_wire_expression2") {
+                                        #ifdef entity:remoteSetCode(string)
+                                            if(E2:owner() == O) {
+                                                if(E2 == E) {
+                                                    addPrintDuplicator("")
+                                                    addPrintRed("Ошибка сохранения библиотеки путём замены кода чипа. ")
+                                                    addPrint("Указана причина: нельзя сохранять библиотеку в чип Duplicator")
+                                                }
+                                                else {
+                                                    addPrintLibrary("Библиотека \"")
+                                                    addPrintValue(Library_n)
+                                                    addPrint("\" ")
+                                                    addPrintGreen("готова ")
+                                                    addPrint("к сохранению.")
+                                                    addPrintDuplicator("Библиотека будет записана в этот чип.")
+                                                    
+                                                    local Code = ""
+                                                    Code+= "@name " + Library_n
+                                                    Code+= "\n"
+                                                    Code+= "@outputs [VonLibrary]:string"
+                                                    Code+= "\n"
+                                                    Code+= "VonLibrary = getCode():explode(\"#vonCode#\")[3, string]"
+                                                    Code+= "\n"
+                                                    Code+= "#vonCode#" + vonEncode(GLibrary:toTable())
+                                                    E2:remoteSetCode(Code)
+                                                    
+                                                    local VonError = vonError()
+                                                    if(VonError) {
+                                                        addPrintDuplicator("")
+                                                        addPrintRed("[ОШИБКА] ")
+                                                        addPrint(vec(200), "vonError: " + VonError)
+                                                    }
+                                                }
+                                            }
+                                            else {
+                                                addPrintDuplicator("")
+                                                addPrintRed("Ошибка сохранения библиотеки путём замены кода чипа. ")
+                                                addPrint("Указана причина: вы не являетесь владельцем чипа.")
+                                            }
+                                    #else
+                                        addPrintDuplicator("")
+                                        addPrintRed("Ошибка сохранения библиотеки путём замены кода чипа. ")
+                                        addPrint("Указана причина: отсутствует функция ")
+                                        addPrintRemoteSetCode()
+                                    #endif
+                                }
+                                elseif(!E2) {
+                                    addPrintDuplicator("")
+                                    addPrintRed("Ошибка сохранения библиотеки путём замены кода чипа. ")
+                                    addPrint("Вы не выбрали чип для замены его кода, вы смотрите в пустоты.")
+                                }
+                                else {
+                                    addPrintDuplicator("")
+                                    addPrintRed("Ошибка сохранения библиотеки путём замены кода чипа. ")
+                                    addPrint("Указана причина: этот объект не является чипом E2.")
+                                }
+                                break
+                            }
+                            addPrintLibrary("Библиотека \"")
+                            addPrintValue(Library_n)
+                            addPrint("\" ")
+                            addPrintGreen("готова ")
+                            addPrint("к сохранению.")
+                            addPrintFile("Начинаю процедуру сохранения библиотеки.")
+                            
+                            Duplicator["fileSistem/procedure", string] = "librarySave"
+                        }
+                        else {
+                            addPrintDuplicator("")
+                            addPrintRed("Ошибка сохранения библиотеки. ")
+                            addPrint("Указана причина: нет загруженной библиотеки. Воспользуйтесь командой \"")
+                            addPrintBlue("!создать")
+                            addPrint("\", или командой \"")
+                            addPrintBlue("!загрузить библиотеку")
+                            addPrint("\".")
+                        }
+                    break
+                    #
+                    #
+                    default,
+                        addPrintDuplicator("Сохранить что?")
+                    break
+                }
+            break
+            #
+            #
+            #
+            case "загрузить",
+                
+            break
             #
             #
             #
             default,
-                if(Duplicator["commads/" + Command, number]) {
+                if(Duplicator["commadSistem/" + Command, number]) {
                     addPrintDuplicator("Этой команде нет назначенного действия, возможно, она еще на стадии разработки.")
                 }
                 else {
@@ -328,12 +470,12 @@ if(chatClk(O)) {
     }
 }
 
-if(clk("updater") | httpClk()) {
-    local Procedure = Duplicator["updater/procedure", string]
-        timer("updater", Procedure ? 150 : 500)
+if(clk("updaterSistem") | httpClk()) {
+    local Procedure = Duplicator["updaterSistem/procedure", string]
+        timer("updaterSistem", Procedure ? 150 : 500)
     
     if(changed(0)) {
-        Duplicator["updater/url", string] = "https://raw.githubusercontent.com/AncRad/expression/master/Duplicator"
+        Duplicator["updaterSistem/url", string] = "https://raw.githubusercontent.com/AncRad/expression/master/Duplicator"
     }
     
     switch(Procedure) {
@@ -341,29 +483,29 @@ if(clk("updater") | httpClk()) {
             
             if(httpCanRequest()) {
                 addPrintUpdater("Запрос на загрузку файла отправлен")
-                httpRequest(Duplicator["updater/url", string])
+                httpRequest(Duplicator["updaterSistem/url", string])
                 
-                Duplicator["updater/procedure", string] = "wait"
-                Duplicator["updater/request/startTime", number] = 0
+                Duplicator["updaterSistem/procedure", string] = "wait"
+                Duplicator["updaterSistem/request/startTime", number] = 0
                 break
             }
-            if(Duplicator["updater/request/startTime", number]) {
-                if((curtime() - Duplicator["updater/request/startTime", number]) >= Duplicator["updater/request/maxTime", number]) {
+            if(Duplicator["updaterSistem/request/startTime", number]) {
+                if((curtime() - Duplicator["updaterSistem/request/startTime", number]) >= Duplicator["updaterSistem/request/maxTime", number]) {
                     addPrintUpdater("")
                     addPrintRed("Ошибка загрузки!")
                     addPrint("Указана причина: вышло время ожидания разрешения на запрос файла (")
-                    addPrintValue(Duplicator["updater/request/maxTime", number] + "с")
+                    addPrintValue(Duplicator["updaterSistem/request/maxTime", number] + "с")
                     addPrint(")")
                     addPrintUpdater("Вы можете загрузить файл самостоятельно, перейдя по ссылке ")
-                    addPrintValue(Duplicator["updater/url", string])
+                    addPrintValue(Duplicator["updaterSistem/url", string])
                     
-                    Duplicator["updater/procedure", string] = ""
-                    Duplicator["updater/request/startTime", number] = 0
+                    Duplicator["updaterSistem/procedure", string] = ""
+                    Duplicator["updaterSistem/request/startTime", number] = 0
                 }
             }
             else {
                 addPrintUpdater("Ожидается разрешение на запрос файла")
-                Duplicator["updater/request/startTime", number] = curtime()
+                Duplicator["updaterSistem/request/startTime", number] = curtime()
             }
         break
         #
@@ -377,7 +519,7 @@ if(clk("updater") | httpClk()) {
                 if(Data) {
                     
                     addPrintUpdater("Файл получен. Ваша версия кода ")
-                    Duplicator["updater/data", string] = Data
+                    Duplicator["updaterSistem/data", string] = Data
                     if(getCode() == Data) {
                         addPrintGreen("не отличается")
                         addPrint(" от последней оригинальной версии кода.")
@@ -389,37 +531,37 @@ if(clk("updater") | httpClk()) {
                         addPrintBlue("!обновить")
                         addPrint("\"")
                     }
-                    Duplicator["updater/update", string] = Data
+                    Duplicator["updaterSistem/update", string] = Data
                 }
                 else {
                     addPrintUpdater("")
                     addPrintRed("Ошибка загрузки! ")
                     addPrint("Указана причина: файл пуст")
                     addPrintUpdater("Вы можете загрузить файл самостоятельно, перейдя по ссылке ")
-                    addPrintValue(Duplicator["updater/url", string])
+                    addPrintValue(Duplicator["updaterSistem/url", string])
                 }
                 
-                Duplicator["updater/procedure", string] = ""
-                Duplicator["updater/wait/startTime", number] = 0
+                Duplicator["updaterSistem/procedure", string] = ""
+                Duplicator["updaterSistem/wait/startTime", number] = 0
                 break
             }
-            if(Duplicator["updater/wait/startTime", number]) {
-                if((curtime() - Duplicator["updater/wait/startTime", number]) >= Duplicator["updater/wait/maxTime", number]) {
+            if(Duplicator["updaterSistem/wait/startTime", number]) {
+                if((curtime() - Duplicator["updaterSistem/wait/startTime", number]) >= Duplicator["updaterSistem/wait/maxTime", number]) {
                     
                     addPrintUpdater("")
                     addPrintRed("Ошибка загрузки! ")
                     addPrint("Указана причина: превышено время ожидания ответа сервера gitHub (")
-                    addPrintValue(Duplicator["updater/wait/maxTime", number] + "с")
+                    addPrintValue(Duplicator["updaterSistem/wait/maxTime", number] + "с")
                     addPrint(")")
                     addPrintUpdater("Вы можете загрузить файл самостоятельно, перейдя по ссылке ")
-                    addPrintValue(Duplicator["updater/url", string])
+                    addPrintValue(Duplicator["updaterSistem/url", string])
                     
-                    Duplicator["updater/procedure", string] = ""
-                    Duplicator["updater/wait/startTime", number] = 0
+                    Duplicator["updaterSistem/procedure", string] = ""
+                    Duplicator["updaterSistem/wait/startTime", number] = 0
                 }
             }
             else {
-                Duplicator["updater/wait/startTime", number] = curtime()
+                Duplicator["updaterSistem/wait/startTime", number] = curtime()
             }
         break
         #
@@ -431,17 +573,100 @@ if(clk("updater") | httpClk()) {
     }
 }
 
-
-
-
-
-if(clk("print")) {
-        timer("print", 350)
+if(clk("fileSistem") | fileClk()) {
+    local Procedure = Duplicator["fileSistem/procedure", string]
+        timer("fileSistem", Procedure ? 150 : 500)
     
-    local Print = Duplicator["print", array]
+    switch(Procedure) {
+        case "librarySave",
+            
+            if(fileCanWrite()) {
+                local Library_n = GLibrary["library/name", string]
+                addPrintFile("Библиотека \"")
+                addPrintValue(Library_n)
+                addPrint("\" сохранена ")
+                addPrintGreen("удачно")
+                addPrint(".")
+                
+                fileWrite("duplicator/" + Library_n + ".txt", vonEncode(GLibrary:toTable()))
+                
+                local VonError = vonError()
+                if(VonError) {
+                    addPrintDuplicator("")
+                    addPrintRed("[ОШИБКА] ")
+                    addPrint(vec(200), "vonError: " + VonError)
+                }
+                
+                
+                Duplicator["fileSistem/procedure", string] = ""
+                Duplicator["fileSistem/write/startTime", number] = 0
+                break
+            }
+            if(Duplicator["fileSistem/write/startTime", number]) {
+                if((curtime() - Duplicator["fileSistem/write/startTime", number]) >= Duplicator["fileSistem/write/maxTime", number]) {
+                    addPrintFile("")
+                    addPrintRed("Ошибка сохранения библиотеки! ")
+                    addPrint("Указана причина: привышено время ожидания разрешения на сохранение файла (")
+                    addPrintValue(Duplicator["fileSistem/write/maxTime", number] + "с")
+                    addPrint(")")
+                    
+                    #ifdef entity:remoteSetCode(string)
+                        addPrintDuplicator("Воспользовавшись командой \"")
+                        addPrintBlue("!сохранить библиотеку в этот чип")
+                        addPrint("\", вы можете сохранить библиотеку, заменив код чипа, на который смотрите.")
+                    #else 
+                        addPrintDuplicator("Простите, но на данном этапе разработки дубликатора альтернативы не предусмотрены.")
+                    #endif
+                    
+                    Duplicator["fileSistem/procedure", string] = ""
+                    Duplicator["fileSistem/write/startTime", number] = 0
+                }
+            }
+            else {
+                addPrintFile("Ожидание разрешения на сохранение файла")
+                Duplicator["fileSistem/write/startTime", number] = curtime()
+            }
+        break
+        default,
+            
+        break
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+if(clk("printSistem")) {
+        timer("printSistem", 350)
+    
+    local Print = Duplicator["printSistem/print", array]
     if(Print:count()) {
         printColor(Print)
-        Duplicator["print", array]:clear()
+        Duplicator["printSistem/print", array]:clear()
     }
 }
 setName("Duplicator\nOPS: " + ops() + "\nCPU: " + floor(cpuUsage() * 1e6))
