@@ -104,9 +104,10 @@ if(changed(0)) {
     if(Entity == E | !Entity) {
         addPrint(vec(0), "========================================")
         if(GDuplicator["updateUploadCode", number] & Entity) {
-            addPrintUpdater("Новая версия кода была запущена ")
-            addPrintGreen("успешно ")
-            addPrint(", чип готов к работе.")
+            addPrint("Код был заменён на последнюю версию и ")
+            addPrintGreen("успешно")
+            addPrint(" запущен, чип готов к работе.")
+            addPrintDuplicator("Спасибо за то, что вы с нами :>")
         }
         else {
             addPrintDuplicator("")
