@@ -104,9 +104,10 @@ if(changed(0)) {
     if(Entity == E | !Entity) {
         addPrint(vec(0), "========================================")
         if(GDuplicator["updateUploadCode", number] & Entity) {
-            addPrint("Код был заменён на последнюю версию и ")
+            addPrintUpdater("Код был заменён на последнюю версию и ")
             addPrintGreen("успешно")
             addPrint(" запущен, чип готов к работе.")
+            addPrintUpdater("Не забудьте открыть чип и сохранить последнюю версию кода.")
             addPrintDuplicator("Спасибо за то, что вы с нами :>")
         }
         else {
@@ -378,7 +379,7 @@ if(clk("updater") | httpClk()) {
                     addPrintUpdater("Файл получен. Ваша версия кода ")
                     Duplicator["updater/data", string] = Data
                     if(getCode() == Data) {
-                        #addPrintGreen("не отличается")
+                        addPrintGreen("не отличается")
                         addPrint(" от последней оригинальной версии кода.")
                     }
                     else {
