@@ -2,7 +2,7 @@
 
 @inputs 
 @outputs 
-@persist [E O]:entity [Duplicator Library]:table [GDuplicator]:gtable
+@persist [E O]:entity [Duplicator Scaner Library]:table [GDuplicator]:gtable
 
 
 
@@ -11,6 +11,7 @@ if(changed(0)) {
     runOnChat(1)
     runOnHTTP(1)
     timer("fileSistem", 1)
+    timer("scanSistem", 1)
     timer("printSistem", 1)
     timer("updaterSistem", 1)
     
@@ -20,6 +21,8 @@ if(changed(0)) {
     Duplicator["fileSistem/load/maxTime", number] = 20
     Duplicator["fileSistem/wait/maxTime", number] = 20
     Duplicator["fileSistem/write/failure/failuresToHelp", number] = 0  #0 - to off
+    
+    Scaner["find/sphere/radius", number] = 52.5 * 2
     
     E = entity()
     O = owner()
@@ -116,11 +119,20 @@ if(changed(0)) {
     #
     function addPrintInfo(Print:array) {
         addPrintDuplicator("")
-        addPrintBlue("[Инфо] ")
+        addPrintBlue("[] ")
         Duplicator["printSistem/print", array] = Duplicator["printSistem/print", array]:add(Print)
     }
     function addPrintInfo(Print:string) {
         addPrintInfo(array(Print))
+    }
+    #
+    function addPrintScan(Print:array) {
+        addPrintDuplicator("")
+        addPrintBlue("[Система сканирования] ")
+        Duplicator["printSistem/print", array] = Duplicator["printSistem/print", array]:add(Print)
+    }
+    function addPrintScan(Print:string) {
+        addPrintScan(array(Print))
     }
     #
     #
@@ -163,6 +175,21 @@ if(changed(0)) {
             break
         }
     }
+    #
+    #
+    #
+    function string numToStringEnding(Number:number) {
+        local Number = Number:toString():right(1):toNumber()
+        if(Number == 1) {
+            return ""
+        }
+        elseif(Number == 0 | Number >= 5) {
+            return "ов"
+        }
+        else {
+            return "а"
+        }
+    }
     ################
     #
     #
@@ -173,9 +200,9 @@ if(changed(0)) {
         
         Library:clear()
         Library["library/name", string] = Library_n
-        Library["creator/name", string] = O:name()
-        Library["creator/steamID", string] = O:steamID()
-        Library["creator/dateUTC", table] = UTC
+        Library["create/creatorNname", string] = O:name()
+        Library["create/creatorSteamID", string] = O:steamID()
+        Library["create/dateUTC", table] = UTC
         
         #Library["history", table] = table("1" = table("dateUTC" = UTC, "operation" = "libraryCreate", "autor/name" = O:name(), "creator/steamID" = O:steamID()))
         
@@ -254,7 +281,6 @@ if(chatClk(O)) {
         #
         #- 
         #
-        #[
         addChatCommand(
             "выделить",
             array(
@@ -279,7 +305,6 @@ if(chatClk(O)) {
                 vec(255,255,255), "Добавляет чертёж в библиотеку."
             )
         )
-        ]#
         #
         #- 
         #
@@ -459,10 +484,10 @@ if(chatClk(O)) {
                                                     Code+= "\n"
                                                     Code+= "@outputs [VonLibrary]:string"
                                                     Code+= "\n"
-                                                    Code+= "VonLibrary = getCode():explode(\"#vonCode#\")[3, string]"
+                                                    Code+= "VonLibrary = getCode():explode(\"#\" + \"vonCode\" + \"#\")[2, string]"
                                                     Code+= "\n"
-                                                    Code+= "#vonCode#" + vonEncode(Library)
-                                                    E2:remoteSetCode(Code)
+                                                    #Code+= "#vonCode#" + vonEncode(Library)
+                                                    #E2:remoteSetCode(Code)
                                                     
                                                     local VonError = vonError()
                                                     if(VonError) {
@@ -595,16 +620,200 @@ if(chatClk(O)) {
             #
             #
             #
+            case "выделить",
+                local AE = O:aimEntity()
+                if(AE) {
+                    if(1) { #if(AE:isPhysics()) {
+                        addPrintScan("Объект \"")
+                        addPrintValue(AE:toString())
+                        addPrint("\" выделен.")
+                        Scaner["find/sphere/target", string] = "entity"
+                        Scaner["find/sphere/target/entity", entity] = AE
+                    }
+                }
+                else {
+                    addPrintScan("Новая точка выделена.")
+                    Scaner["find/sphere/target", string] = "pos"
+                    Scaner["find/sphere/target/pos", vector] = O:aimPos()
+                }
+            break
+            #
+            case "радиус",
+                local Arg2 = Explode[2, string]
+                if(Arg2) {
+                    local Radius = Arg2:toNumber()
+                    if(Radius) {
+                        Radius = max(Radius,0.5)
+                        local Metr = Radius / 52.5
+                        addPrintScan("Новый радиус выделения ")
+                        addPrintValue(Radius + "u ")
+                        addPrint("(")
+                        addPrintValue(round(Metr,(Metr > 5 ? 0 : Metr > 1 ? 1 : 2)) + "м")
+                        addPrint(")")
+                        Scaner["find/sphere/radius", number] = Radius
+                        break
+                    }
+                }
+                
+                local Radius = Scaner["find/sphere/radius", number]
+                local Metr = Radius / 52.5
+                addPrintScan("Радиус выделения ")
+                addPrintValue(Radius + "u ")
+                addPrint("(")
+                addPrintValue(round(Metr,(Metr > 5 ? 0 : Metr > 1 ? 1 : 2)) + "м")
+                addPrint(")")
+            break
+            #
+            case "сканировать",
+                if(!Scaner["scanSistem/procedure", string]) {
+                    local Target = Scaner["find/sphere/target", string]
+                    local Target_p = vec()
+                    
+                    
+                    if(Target == "entity") {
+                        local Target_e = Scaner["find/sphere/target/entity", entity]
+                        if(Target_e) {
+                            Target_p = Target_e:pos()
+                        }
+                        else {
+                            addPrintScan("")
+                            addPrintRed("Невозможно начать процедуру сканирования. ")
+                            addPrint("Указана причина: выделенный объект уже не существует.")
+                            break
+                        }
+                    }
+                    elseif(Target == "pos") {
+                        Target_p = Scaner["find/sphere/target/pos", vector]
+                        if(Target_p == vec()) {
+                            addPrintScan("")
+                            addPrintRed("Невозможно начать процедуру сканирования. ")
+                            addPrint("Указана причина: координаты пусты. Воспользуйтесь командой \"")
+                            addPrintBlue("!выделить")
+                            addPrint("\".")
+                            break
+                        }
+                    }
+                    else {
+                        addPrintScan("")
+                        addPrintRed("Невозможно начать процедуру сканирования. ")
+                        addPrint("Указана причина: нет выделения. Воспользуйтесь командой \"")
+                        addPrintBlue("!выделить")
+                        addPrint("\".")
+                        break
+                    }
+                        
+                    local Radius = Scaner["find/sphere/radius", number]
+                    
+                    findClearBlackList()
+                    findClearWhiteList()
+                    findIncludeClass("prop")
+                    findIncludeClass("holo")
+                    local Count = findInSphere(Target_p, Radius)
+                    
+                    addPrintScan("Обнаружено ")
+                    addPrintValue(Count+"")
+                    addPrint(" объект" + numToStringEnding(Count) + ".")
+                    
+                    if(Count) {
+                        Scaner["find/entityList", array] = findToArray()
+                        addPrint(" Запускаю процедуру сбора информации.")
+                        
+                        Scaner["scanSistem/target", string] = Target
+                        Scaner["scanSistem/target/pos", vector] = Target_p
+                        Scaner["scanSistem/target/entity", entity] = Scaner["find/sphere/target/entity", entity]
+                        Scaner["scanSistem/procedure", string] = "scan"
+                        timer("scanSistem", 1)
+                    }
+                }
+                else {
+                    addPrintScan("")
+                    addPrintRed("Невозможно начать процедуру сканирования. ")
+                    addPrint("Указана причина: ")
+                    addPrint("система сканирования ")
+                    addPrint("выполняет процедуру \"")
+                    addPrintValue(Scaner["scanSistem/procedure", string])
+                    addPrint("\" воспользуйтесь командой \"")
+                    addPrintBlue("!прервать")
+                    addPrint("\".")
+                }
+            break
+            #
+            case "добавить",
+                local Arg2 = Explode[2, string]
+                switch(Arg2) {
+                    case "чертеж",
+                        if(Library:toString()) {
+                            local Blueprint_t = Scaner["scanSistem/duplication", table]
+                            if(Blueprint_t:toString()) {
+                                local Blueprint_n = Explode:concat(3)
+                                if(Blueprint_n) {
+                                    local Blueprint_i = Library["bluepruints/count", number] = Library["bluepruints/count", number] + 1
+                                    
+                                    Library["bluepruints", array] =  Library["bluepruints", array]:add(array(Blueprint_i))
+                                    Library[Blueprint_i + "/bluepruint/table", table] = Scaner["scanSistem/duplication", table]
+                                    Library[Blueprint_i + "/bluepruint/name", string] = Blueprint_n
+                                    addPrintLibrary("Чертеж \"")
+                                    addPrintValue(Blueprint_n)
+                                    addPrint("\" сохранён в билиотеку ")
+                                    addPrintValue(Library["library/name", string])
+                                    addPrint("\" под номерном ")
+                                    addPrintValue(Blueprint_i + "")
+                                    addPrint("\".")
+                                }
+                                else {
+                                    addPrintLibrary("")
+                                    addPrintRed("Невозможно добавть чертеж в библиотеку. ")
+                                    addPrint("Указана причина: не указано название чертежа. Команда: \"")
+                                    addPrintBlue("!добавить чертеж <имя чертежа>")
+                                    addPrint("\".")
+                                }
+                            }
+                            else {
+                                addPrintLibrary("")
+                                addPrintRed("Невозможно добавть чертеж в библиотеку. ")
+                                addPrint("Указана причина: не было выполнено сканирование. Воспользуйтесь командой \"")
+                                addPrintBlue("!выделить")
+                                addPrint("\", а затем командой \"")
+                                addPrintBlue("!сканировать")
+                                addPrint("\".")
+                            }
+                        }
+                        else {
+                            addPrintLibrary("")
+                            addPrintRed("Невозможно добавть чертеж в библиотеку. ")
+                            addPrint("Указана причина: нет загруженной библиотеки. Воспользуйтесь командой \"")
+                            addPrintBlue("!создать")
+                            addPrint("\", или командой \"")
+                            addPrintBlue("!загрузить библиотеку")
+                            addPrint("\".")
+                        }
+                    break
+                    #
+                    #
+                    default,
+                        if(changed(0)) {
+                            addPrintLibrary("4о?")
+                        }
+                        else {
+                            addPrintLibrary("Добавить что?")
+                        }
+                    break
+                }
+            break
+            #
+            #
+            #
             case "инфо",
                 if(LastSaid == "!инфо") {
                     
+                    continue
                     break
                 }
                 local Agr2 = Explode[2, string]
                 if(Agr2:left(18) == "библиотек") {
                     if(Library != table()) {
                         addPrintInfo("Библиотека создана игроком \"")
-                        addPrintValue(Library["creator/name", string])
+                        addPrintValue(Library["create/creatorNname", string])
                         addPrint("\". Пока всё. И вообще, сейчас ")
                         addPrintValue("четыре ")
                         addPrint("часа утра, я еще не сплю, а у меня сегодня много дел.")
@@ -799,7 +1008,7 @@ if(clk("fileSistem") | fileClk()) {
                         if(Library_t["library/name", string] == Library_n) {
                             Library = Library_t
                             addPrintLibrary("Создатель библиотеки \"")
-                            addPrintValue(Library["creator/name", string])
+                            addPrintValue(Library["create/creatorNname", string])
                             addPrint("\".")
                         }
                         else {
@@ -931,7 +1140,93 @@ if(clk("fileSistem") | fileClk()) {
     }
 }
 
-
+if(clk("scanSistem")) {
+    local Procedure = Scaner["scanSistem/procedure", string]
+        timer("scanSistem", Procedure ? 1 : 500)
+    
+    
+    switch(Procedure) {
+        case "scan",
+            
+            if(!Scaner["scanSistem/scan/starTime", number]) {
+                Scaner["scanSistem/scan/starTime", number] = curtime()
+                Scaner["scanSistem/duplication", table] = table("duplication/entityCount" = Scaner["find/entityList", array]:count())
+                Scaner["scanSistem/scan/step", string] = "posAng"
+            }
+            
+            local Step = Scaner["scanSistem/scan/step", string]
+            
+            local Duplication = Scaner["scanSistem/duplication", table] Scaner["scanSistem/duplication", table] = Duplication
+            
+            local Target = Scaner["scanSistem/target", string]
+            local Pos = Scaner["scanSistem/target/pos", vector]
+            local Target_e = Scaner["scanSistem/target/entity", entity]
+            
+            
+            
+            
+            local EntityList_a = Scaner["find/entityList", array]
+            local EntityList_c = EntityList_a:count()
+            local C = Scaner["scanSistem/scan/c", number]
+            while(C < EntityList_c & perf(90)) {
+                C++
+                local Ent_e = EntityList_a[C, entity]
+                
+                switch(Step) {
+                    case "posAng",
+                        switch(Target) {
+                            case "entity",
+                                Duplication["duplication/pos/" + C, vector] = Target_e:toLocal(Ent_e:pos())
+                                Duplication["duplication/ang/" + C, angle ] = Target_e:toLocal(Ent_e:angles())
+                            break
+                            case "pos",
+                                Duplication["duplication/pos/" + C, vector] = Ent_e:pos() - Pos
+                                Duplication["duplication/ang/" + C, angle ] = Ent_e:angles()
+                            break
+                        }
+                    break
+                    case "other",
+                        Duplication["duplication/type/" + C, string] = Ent_e:type()
+                        Duplication["duplication/model/" + C, string] = Ent_e:model()
+                        Duplication["duplication/color/" + C, vector4] = Ent_e:getColor4()
+                        Duplication["duplication/material/" + C, string] = Ent_e:getMaterial()
+                    break
+                }
+            }
+            Scaner["scanSistem/scan/c", number] = C
+            
+            if(C >= EntityList_c) {
+                
+                if(Step == "posAng") {
+                    
+                    addPrintScan("Сбор информации позиционирования завершен за ")
+                    addPrintValue((round(curtime() - Scaner["scanSistem/scan/starTime", number]) * 1000) + "мс")
+                    addPrint(". Начинаю сбор остальной информации.")
+                    Scaner["scanSistem/scan/step", string] = "other"
+                    Scaner["scanSistem/scan/c", number] = 0
+                }
+                else {
+                    addPrintScan("Сбор информации завершен, время затрачено: ")
+                    addPrintValue((round(curtime() - Scaner["scanSistem/scan/starTime", number]) * 1000) + "мс")
+                    addPrint(". Можете воспользоваться командой \"")
+                    addPrintBlue("!добавить чертеж")
+                    addPrint("\".")
+                    
+                    Scaner["scanSistem/scan/c", number] = 0
+                    Scaner["scanSistem/procedure", string] = ""
+                    Scaner["scanSistem/scan/step", string] = ""
+                    Scaner["scanSistem/scan/starTime", number] = 0
+                }
+            }
+        break
+        #
+        #
+        #
+        default,
+            
+        break
+    }   
+}
 
 
 
