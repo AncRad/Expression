@@ -1,1 +1,9 @@
+@name EAPB
+
+@inputs 
+@outputs 
+@persist 
+
+@trigger none
+#editor animation the bones of the player
 
