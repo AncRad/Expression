@@ -2,7 +2,7 @@
 
 @inputs 
 @outputs 
-@persist [E O]:entity [Duplicator Scaner Library]:table [GDuplicator]:gtable
+@persist [E O]:entity [Duplicator Library Scaner Preview]:table [GDuplicator]:gtable
 
 
 
@@ -13,6 +13,7 @@ if(changed(0)) {
     timer("fileSistem", 1)
     timer("scanSistem", 1)
     timer("printSistem", 1)
+    timer("previewSistem", 1)
     timer("updaterSistem", 1)
     
     Duplicator["updaterSistem/request/maxTime", number] = 20
@@ -98,6 +99,13 @@ if(changed(0)) {
     function addPrintLibrary(Print:string) {
         addPrintLibrary(array(Print))
     }
+    function addPrintLibraryNoLoad() {
+        addPrint("Указана причина: нет загруженной библиотеки. Воспользуйтесь командой \"")
+        addPrintBlue("!создать")
+        addPrint("\", или командой \"")
+        addPrintBlue("!загрузить библиотеку")
+        addPrint("\".")
+    }
     #
     function addPrintFile(Print:array) {
         addPrintDuplicator("")
@@ -119,7 +127,7 @@ if(changed(0)) {
     #
     function addPrintInfo(Print:array) {
         addPrintDuplicator("")
-        addPrintBlue("[] ")
+        addPrintBlue("[Инфо] ")
         Duplicator["printSistem/print", array] = Duplicator["printSistem/print", array]:add(Print)
     }
     function addPrintInfo(Print:string) {
@@ -200,7 +208,7 @@ if(changed(0)) {
         
         Library:clear()
         Library["library/name", string] = Library_n
-        Library["create/creatorNname", string] = O:name()
+        Library["create/creatorName", string] = O:name()
         Library["create/creatorSteamID", string] = O:steamID()
         Library["create/dateUTC", table] = UTC
         
@@ -472,13 +480,8 @@ if(chatClk(O)) {
                                                     addPrint("Указана причина: нельзя сохранять библиотеку в чип Duplicator")
                                                 }
                                                 else {
-                                                    addPrintLibrary("Библиотека \"")
-                                                    addPrintValue(Library_n)
-                                                    addPrint("\" ")
-                                                    addPrintGreen("готова ")
-                                                    addPrint("к сохранению.")
-                                                    addPrintDuplicator("Библиотека будет записана в этот чип.")
-                                                    
+                                                    local VonCode = vonEncode(Library)
+                                                    local VonCode_l = VonCode:length()
                                                     local Code = ""
                                                     Code+= "@name " + Library_n
                                                     Code+= "\n"
@@ -486,8 +489,20 @@ if(chatClk(O)) {
                                                     Code+= "\n"
                                                     Code+= "VonLibrary = getCode():explode(\"#\" + \"vonCode\" + \"#\")[2, string]"
                                                     Code+= "\n"
-                                                    #Code+= "#vonCode#" + vonEncode(Library)
-                                                    #E2:remoteSetCode(Code)
+                                                    Code+= "#vonCode#" + VonCode
+                                                    E2:remoteSetCode(Code)
+                                                    
+                                                    
+                                                    addPrintLibrary("Библиотека \"")
+                                                    addPrintValue(Library_n)
+                                                    addPrint("\" ")
+                                                    addPrintGreen("готова ")
+                                                    addPrint("к сохранению.")
+                                                    addPrintDuplicator("Библиотека будет записана в этот чип. ")
+                                                    addPrint("Размер файла библиотеки ")
+                                                    addPrintValue(VonCode_l + "")
+                                                    addPrint(" символ" + numToStringEnding(VonCode_l) + ".")
+                                                    
                                                     
                                                     local VonError = vonError()
                                                     if(VonError) {
@@ -547,11 +562,7 @@ if(chatClk(O)) {
                         else {
                             addPrintDuplicator("")
                             addPrintRed("Ошибка сохранения библиотеки. ")
-                            addPrint("Указана причина: нет загруженной библиотеки. Воспользуйтесь командой \"")
-                            addPrintBlue("!создать")
-                            addPrint("\", или командой \"")
-                            addPrintBlue("!загрузить библиотеку")
-                            addPrint("\".")
+                            addPrintLibraryNoLoad()
                         }
                     break
                     #
@@ -602,6 +613,53 @@ if(chatClk(O)) {
                                 addPrintRed("Ошибка загрузки библиотеки из файла. ")
                                 addPrint("Указана причина: не указано название библиотеки.")
                             }
+                        }
+                    break
+                    #
+                    #
+                    #
+                    case "чертеж",
+                        if(Library:toString()) {
+                            local Blueprint_n = Explode:concat(3)
+                            if(Blueprint_n) {
+                                local Blueprint_i = Library[Blueprint_n + "/bluepruint/index", number]
+                                if(Blueprint_i) {
+                                    local Blueprint_t = Library[Blueprint_i + "/bluepruint/table", table]
+                                    local Blueprint_n = Library[Blueprint_i + "/bluepruint/name", string]
+                                    local ObjectsNumber = Blueprint_t["blueprint/entityCount", number]
+                                    if(!ObjectsNumber) {
+                                        ObjectsNumber = Blueprint_t["type", array]:count()
+                                    }
+                                    
+                                    addPrintLibrary("Начинаю процедуру загрузки чертежа. ")
+                                    addPrintValue(Blueprint_t["create/creatorName", string])
+                                    addPrint("\", \"")
+                                    addPrintValue(Blueprint_n)
+                                    addPrint("\",  ")
+                                    addPrintValue(ObjectsNumber + "")
+                                    addPrint(".")
+                                    Preview["previewSistem/procedure", string] = "blueprintLoad"
+                                    Preview["previewSistem/blueprintLoad/blueprint/table", table] = Blueprint_t
+                                }
+                                else {
+                                    addPrintLibrary("")
+                                    addPrintRed("Невозможно загрузить чертеж из библиотеки. ")
+                                    addPrint("Указана причина: чертежа с таким именем в библиотеке нет.")
+                                }
+                            }
+                            else {
+                                Blueprint_n
+                                addPrintLibrary("")
+                                addPrintRed("Невозможно загрузить чертеж из библиотеки. ")
+                                addPrint("Указана причина: не указано название чертежа. Команда: \"")
+                                addPrintBlue("!добавить чертеж <имя чертежа>")
+                                addPrint("\".")
+                            }
+                        }
+                        else {
+                            addPrintLibrary("")
+                            addPrintRed("Невозможно загрузить чертеж из библиотеки. ")
+                            addPrintLibraryNoLoad()
                         }
                     break
                     #
@@ -708,6 +766,10 @@ if(chatClk(O)) {
                     findClearWhiteList()
                     findIncludeClass("prop")
                     findIncludeClass("holo")
+                    findIncludeClass("wire")
+                    findIncludeClass("pod")
+                    findIncludeClass("gate")
+                    findIncludeClass("sprite")
                     local Count = findInSphere(Target_p, Radius)
                     
                     addPrintScan("Обнаружено ")
@@ -743,22 +805,37 @@ if(chatClk(O)) {
                 switch(Arg2) {
                     case "чертеж",
                         if(Library:toString()) {
-                            local Blueprint_t = Scaner["scanSistem/duplication", table]
+                            local Blueprint_t = Scaner["scanSistem/blueprint", table]
                             if(Blueprint_t:toString()) {
-                                local Blueprint_n = Explode:concat(3)
+                                local Blueprint_n = Explode:concat(" ", 3)
                                 if(Blueprint_n) {
-                                    local Blueprint_i = Library["bluepruints/count", number] = Library["bluepruints/count", number] + 1
-                                    
-                                    Library["bluepruints", array] =  Library["bluepruints", array]:add(array(Blueprint_i))
-                                    Library[Blueprint_i + "/bluepruint/table", table] = Scaner["scanSistem/duplication", table]
-                                    Library[Blueprint_i + "/bluepruint/name", string] = Blueprint_n
-                                    addPrintLibrary("Чертеж \"")
-                                    addPrintValue(Blueprint_n)
-                                    addPrint("\" сохранён в билиотеку ")
-                                    addPrintValue(Library["library/name", string])
-                                    addPrint("\" под номерном ")
-                                    addPrintValue(Blueprint_i + "")
-                                    addPrint("\".")
+                                    if(!Library[Blueprint_n + "/bluepruint/index", number]) {
+                                        local Blueprint_i = Library["bluepruints/count", number] = Library["bluepruints/count", number] + 1
+                                        
+                                        local Blueprint_t = Scaner["scanSistem/blueprint", table]
+                                        
+                                        Blueprint_t["blueprint/name", string] = Blueprint_n
+                                        Blueprint_t["create/creatorName", string] = O:name()
+                                        Blueprint_t["create/creatorSteamID", string] = O:steamID()
+                                        Blueprint_t["create/dateUTC", table] = dateUTC()
+                                        
+                                        Library["bluepruints", array] =  Library["bluepruints", array]:add(array(Blueprint_i))
+                                        Library[Blueprint_i + "/bluepruint/table", table] = Blueprint_t
+                                        Library[Blueprint_i + "/bluepruint/name", string] = Blueprint_n
+                                        Library[Blueprint_n + "/bluepruint/index", number] = Blueprint_i
+                                        addPrintLibrary("Чертеж \"")
+                                        addPrintValue(Blueprint_n)
+                                        addPrint("\" добавлен в билиотеку ")
+                                        addPrintValue(Library["library/name", string])
+                                        addPrint("\" под номерном ")
+                                        addPrintValue(Blueprint_i + "")
+                                        addPrint("\".")
+                                    }
+                                    else {
+                                        addPrintLibrary("")
+                                        addPrintRed("Невозможно добавть чертеж в библиотеку. ")
+                                        addPrint("Указана причина: чертеж с таким именеи уже существует.")
+                                    }
                                 }
                                 else {
                                     addPrintLibrary("")
@@ -781,11 +858,7 @@ if(chatClk(O)) {
                         else {
                             addPrintLibrary("")
                             addPrintRed("Невозможно добавть чертеж в библиотеку. ")
-                            addPrint("Указана причина: нет загруженной библиотеки. Воспользуйтесь командой \"")
-                            addPrintBlue("!создать")
-                            addPrint("\", или командой \"")
-                            addPrintBlue("!загрузить библиотеку")
-                            addPrint("\".")
+                            addPrintLibraryNoLoad()
                         }
                     break
                     #
@@ -811,12 +884,23 @@ if(chatClk(O)) {
                 }
                 local Agr2 = Explode[2, string]
                 if(Agr2:left(18) == "библиотек") {
-                    if(Library != table()) {
-                        addPrintInfo("Библиотека создана игроком \"")
-                        addPrintValue(Library["create/creatorNname", string])
-                        addPrint("\". Пока всё. И вообще, сейчас ")
-                        addPrintValue("четыре ")
-                        addPrint("часа утра, я еще не сплю, а у меня сегодня много дел.")
+                    if(Library:count()) {
+                        
+                        addPrintInfo("Библиотека ")
+                        addPrintValue(Library["library/name", string])
+                        addPrint(" создана игроком \"")
+                        addPrintValue(Library["create/creatorName", string])
+                        addPrint("\".")
+                        addPrintInfo("Всего чертежей ")
+                        addPrintValue(Library["bluepruints", array]:count() + "")
+                        
+                        if(changed(0)) {
+                            addPrintInfo("Вы можете сохранить библиотеку в файл командой \"")
+                            addPrintBlue("!сохранить библиотеку")
+                            addPrint("\", или в код чипа е2 командой \"")
+                            addPrintBlue("!сохранить библиотеку в чип")
+                            addPrint("\".")
+                        }
                     }
                     else {
                         addPrintInfo("Вы можете загрузить библиотеку из файла командой \"")
@@ -826,6 +910,32 @@ if(chatClk(O)) {
                         addPrint("\", или создать командой \"")
                         addPrintBlue("!создать библиотеку")
                         addPrint("\".")
+                    }
+                }
+                elseif(Agr2:left(12) == "чертеж" | Agr2:left(12) == "чертёж") {
+                    if(Library:count()) {
+                        local Blueprints = Library["bluepruints", array]
+                        
+                        addPrintInfo("Список чертежей(")
+                        addPrintValue(Blueprints:count() + "")
+                        addPrint("):")
+                        foreach(C, Blueprint_i:number = Blueprints) {
+                            local Blueprint_t = Library[Blueprint_i + "/bluepruint/table", table]
+                            local Blueprint_n = Library[Blueprint_i + "/bluepruint/name", string]
+                            local ObjectsNumber = Blueprint_t["blueprint/entityCount", number]
+                            if(!ObjectsNumber) {
+                                ObjectsNumber = Blueprint_t["type", array]:count()
+                            }
+                            
+                            addPrintValue("\n" + C)
+                            addPrint(". \"")
+                            addPrintValue(Blueprint_t["create/creatorName", string])
+                            addPrint("\", \"")
+                            addPrintValue(Blueprint_n)
+                            addPrint("\", объектов ")
+                            addPrintValue(ObjectsNumber + "")
+                            addPrint(".")
+                        }
                     }
                 }
             break
@@ -1003,12 +1113,16 @@ if(clk("fileSistem") | fileClk()) {
                 local FileStatus = fileStatus()
                 if((FileStatus == _FILE_OK | FileStatus == _FILE_UNKNOWN) | 1) {
                     if(File) {
+                        local File_l = File:length()
                         local Library_n = Duplicator["fileSistem/load/libraryName", string]
                         local Library_t = vonDecodeTable(File)
                         if(Library_t["library/name", string] == Library_n) {
                             Library = Library_t
-                            addPrintLibrary("Создатель библиотеки \"")
-                            addPrintValue(Library["create/creatorNname", string])
+                            addPrintLibrary("Размер файла библиотеки ")
+                            addPrintValue(File_l + "")
+                            addPrint(" символ" + numToStringEnding(File_l) + ".")
+                            addPrint("Создатель библиотеки \"")
+                            addPrintValue(Library["create/creatorName", string])
                             addPrint("\".")
                         }
                         else {
@@ -1068,15 +1182,20 @@ if(clk("fileSistem") | fileClk()) {
             if(fileCanWrite()) {
                 local Library_n = Library["library/name", string]
                 
-                
-                fileWrite("duplicator/" + Library_n + ".txt", vonEncode(Library))
+                local VonCode = vonEncode(Library)
+                local VonCode_l = VonCode:length()
+                fileWrite("duplicator/" + Library_n + ".txt", VonCode)
                 local FileStatus = fileStatus()
                 if((FileStatus == _FILE_OK | FileStatus == _FILE_UNKNOWN) | 0) {
                     addPrintFile("Библиотека \"")
                     addPrintValue(Library_n)
                     addPrint("\" сохранена ")
                     addPrintGreen("удачно")
-                    addPrint(".")
+                    addPrint(". ")
+                    
+                    addPrint("Размер файла библиотеки ")
+                    addPrintValue(VonCode_l + "")
+                    addPrint(" символ" + numToStringEnding(VonCode_l) + ".")
                 }
                 else {
                     addPrintFile("")
@@ -1142,7 +1261,7 @@ if(clk("fileSistem") | fileClk()) {
 
 if(clk("scanSistem")) {
     local Procedure = Scaner["scanSistem/procedure", string]
-        timer("scanSistem", Procedure ? 1 : 500)
+        timer("scanSistem", Procedure ? 10 : 500)
     
     
     switch(Procedure) {
@@ -1150,23 +1269,29 @@ if(clk("scanSistem")) {
             
             if(!Scaner["scanSistem/scan/starTime", number]) {
                 Scaner["scanSistem/scan/starTime", number] = curtime()
-                Scaner["scanSistem/duplication", table] = table("duplication/entityCount" = Scaner["find/entityList", array]:count())
                 Scaner["scanSistem/scan/step", string] = "posAng"
             }
             
             local Step = Scaner["scanSistem/scan/step", string]
             
-            local Duplication = Scaner["scanSistem/duplication", table] Scaner["scanSistem/duplication", table] = Duplication
+            local Blueprint_t = Scaner["scanSistem/blueprint", table]
             
             local Target = Scaner["scanSistem/target", string]
             local Pos = Scaner["scanSistem/target/pos", vector]
             local Target_e = Scaner["scanSistem/target/entity", entity]
             
             
-            
+            local HoloModelList = holoModelList():concat("#")
             
             local EntityList_a = Scaner["find/entityList", array]
             local EntityList_c = EntityList_a:count()
+            
+            local Pos_a      = Blueprint_t["pos"     , array]
+            local Ang_a      = Blueprint_t["ang"     , array]
+            local Type_a     = Blueprint_t["type"    , array]
+            local Model_a    = Blueprint_t["model"   , array]
+            local Color_a    = Blueprint_t["color"   , array]
+            local Material_a = Blueprint_t["material", array]
             local C = Scaner["scanSistem/scan/c", number]
             while(C < EntityList_c & perf(90)) {
                 C++
@@ -1176,29 +1301,36 @@ if(clk("scanSistem")) {
                     case "posAng",
                         switch(Target) {
                             case "entity",
-                                Duplication["duplication/pos/" + C, vector] = Target_e:toLocal(Ent_e:pos())
-                                Duplication["duplication/ang/" + C, angle ] = Target_e:toLocal(Ent_e:angles())
+                                Pos_a[C, vector] = Target_e:toLocal(Ent_e:pos())
+                                Ang_a[C, angle ] = Target_e:toLocal(Ent_e:angles())
                             break
                             case "pos",
-                                Duplication["duplication/pos/" + C, vector] = Ent_e:pos() - Pos
-                                Duplication["duplication/ang/" + C, angle ] = Ent_e:angles()
+                                Pos_a[C, vector] = Ent_e:pos() - Pos
+                                Ang_a[C, angle ] = Ent_e:angles()
                             break
                         }
                     break
                     case "other",
-                        Duplication["duplication/type/" + C, string] = Ent_e:type()
-                        Duplication["duplication/model/" + C, string] = Ent_e:model()
-                        Duplication["duplication/color/" + C, vector4] = Ent_e:getColor4()
-                        Duplication["duplication/material/" + C, string] = Ent_e:getMaterial()
+                        Type_a[    C, string ] = Ent_e:type()
+                        Model_a[   C, string ] = Ent_e:model()
+                        Color_a[   C, vector4] = Ent_e:getColor4()
+                        Material_a[C, string ] = Ent_e:getMaterial()
                     break
                 }
             }
+            Blueprint_t["pos"     , array] = Pos_a
+            Blueprint_t["ang"     , array] = Ang_a
+            Blueprint_t["type"    , array] = Type_a
+            Blueprint_t["model"   , array] = Model_a
+            Blueprint_t["color"   , array] = Color_a
+            Blueprint_t["material", array] = Material_a
             Scaner["scanSistem/scan/c", number] = C
             
             if(C >= EntityList_c) {
                 
                 if(Step == "posAng") {
                     
+                    Blueprint_t["blueprint/entityCount", number] = EntityList_c
                     addPrintScan("Сбор информации позиционирования завершен за ")
                     addPrintValue((round(curtime() - Scaner["scanSistem/scan/starTime", number]) * 1000) + "мс")
                     addPrint(". Начинаю сбор остальной информации.")
@@ -1218,6 +1350,7 @@ if(clk("scanSistem")) {
                     Scaner["scanSistem/scan/starTime", number] = 0
                 }
             }
+            Scaner["scanSistem/blueprint", table] = Blueprint_t
         break
         #
         #
@@ -1227,6 +1360,64 @@ if(clk("scanSistem")) {
         break
     }   
 }
+
+
+if(clk("previewSistem")) {
+    local Procedure = Preview["previewSistem/procedure", string]
+        timer("previewSistem", Procedure ? 50 : 500)
+    
+    switch(Procedure) {
+        case "blueprintLoad",
+            if(!Preview["previewSistem/blueprintLoad/starTime", number]) {
+                
+                holoDeleteAll()
+                Preview["previewSistem/blueprintLoad/c", number] = 0
+                Preview["previewSistem/blueprintLoad/starTime", number] = curtime()
+            }
+            
+            local Blueprint_t = Preview["previewSistem/blueprintLoad/blueprint/table", table]
+            local Pos_a      = Blueprint_t["pos", array] printTable(Pos_a)
+            local Ang_a      = Blueprint_t["ang", array]
+            #local Type_a     = Blueprint_t["type"    , array]
+            local Model_a    = Blueprint_t["model", array]
+            local Color_a    = Blueprint_t["color"   , array]
+            local Material_a = Blueprint_t["material", array]
+            
+            local C = Preview["previewSistem/blueprintLoad/c", number]
+            while(perf(70) & holoCanCreate() & C < Pos_a:count()) {
+                C++
+                local Pos      = Pos_a[C, vector]
+                local Ang      = Ang_a[C, angle ]
+                #local Type     = Type_a[C, string ]
+                local Model    = Model_a[C, string ]
+                local Color    = Color_a[C, vector4]
+                local Material = Material_a[C, string ]
+                
+                local Holo = holoCreate(C, E:toWorld(Pos + vec(0,0,50)), vec(1), E:toWorld(Ang), vec(Color), Model)
+                holoMaterial(C, Material)
+                holoAlpha(C, Color[4])
+                if(!holoModelAny()) {
+                    #ifdef entity:setModel(string)
+                        Holo:setModel(Model)
+                    #endif
+                }
+                holoParent(C, E)
+            }
+            Preview["previewSistem/blueprintLoad/c", number] = C
+            if(C >= Pos_a:count()) {
+                
+                Preview["previewSistem/procedure", string] = ""
+                Preview["previewSistem/blueprintLoad/c", number] = 0
+                Preview["previewSistem/blueprintLoad/starTime", number] = 0
+            }
+        break
+        default,
+            
+        break
+    }
+}
+
+
 
 
 
