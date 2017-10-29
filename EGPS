@@ -15,30 +15,45 @@ if(changed(0)) {
             ###########################
     ################
     #
-    #- GET INDEX IN ARRAY
+    #- ARRAY OPERATIONS
     #
-    function number array:getIndex([Value Spacer]:string) {
-        local Concat = This:concat(Spacer)
-        local Find = (Spacer + Concat + Spacer):find(Spacer + Value + Spacer)
+    #- GET VALUE MATCHING INDEX
+    #
+    function number array:getIndex([Value Delimiter]:string) {
+        local Concat = This:concat(Delimiter)
+        local Find = (Delimiter + Concat + Delimiter):find(Delimiter + Value + Delimiter)
         
         if(!Find) {return 0}
-        return Concat:left(Find):explode(Spacer):count()
+        return Concat:left(Find):explode(Delimiter):count()
     }
     function number array:getIndex(Value:string) {
         return This:getIndex(Value, "\n#\n")
     }
     #
-    #- REMOVE INDEX IN ARRAY
+    #- REMOVE MATCHING VALUE
     #
-    function number array:removeIndex([Value Spacer]:string) {
-        local Index = This:getIndex(Value, Spacer)
+    function number array:removeValue([Value Delimiter]:string) {
+        local Index = This:getIndex(Value, Delimiter)
         if(Index) {
             This:remove(Index)
         }
         return Index
     }
-    function number array:removeIndex(Value:string) {
-        return This:removeIndex(Value, "")
+    function number array:removeValue(Value:string) {
+        return This:removeValue(Value, "")
+    }
+    #
+    #- ADD IF NOT THIS VALUE
+    #
+    function number array:addNoAvailableValue([Value Delimiter]:string) {
+        local Index = This:getIndex(Value, Delimiter)
+        if(!Index) {
+            This = This:add(array(Index))
+        }
+        return !Index
+    }
+    function number array:addNoAvailableValue(Value:string) {
+        return This:addNoAvailableValue(Value, "")
     }
     #
     #- 
@@ -58,10 +73,10 @@ if(changed(0)) {
     #
     ################
     function egpSelect(EGParent_w:wirelink) {
-        EGPS["egp_w", wirelink] = EGParent_w
+        EGPS["egp/wirelink", wirelink] = EGParent_w
     }
     function egpSelect() {
-        EGPS["egp_w", wirelink] = entity():isWeldedTo():wirelink()
+        EGPS["egp/wirelink", wirelink] = entity():isWeldedTo():wirelink()
     }
     ################
     #
@@ -69,9 +84,9 @@ if(changed(0)) {
     #
     ################
     function egpClear() {
-        local EGParent_w = EGPS["egp_w", wirelink]
+        local EGParent_w = EGPS["egp/wirelink", wirelink]
         EGPS:clear()
-        EGPS["egp_w", wirelink] = EGParent_w
+        EGPS["egp/wirelink", wirelink] = EGParent_w
         EGParent_w:egpClear()
     }
     ################
@@ -94,7 +109,7 @@ if(changed(0)) {
             Index = EGPS["indexCounter", number] = EGPS["indexCounter", number] + 1
             return Index
         }
-        printColor(vec(255,75,0), "[EGPS] ", vec(255,0,0), "Закончились индексы.")
+        printColor(vec(255,75,0), "[EGPS] ", vec(255,0,0), "Закончились индексы.", vec(255), " \"" + Element_n + "\"")
         return 0
     }
     ################
@@ -124,12 +139,12 @@ if(changed(0)) {
     #
     ################
     function egpRemoveElement(Element_n:string) {
-        local EGP = EGPS["egp_w", wirelink]
+        local EGP = EGPS["egp/wirelink", wirelink]
         
         local Element_T = EGPS[Element_n + "/table", table]
         local Element_i = Element_T["index", number]
         foreach(C, G_n:string = Element_T["groups", array]) {
-            EGPS[G_n + "/egpGroup/array", array]:removeIndex(Element_n)
+            EGPS[G_n + "/egpGroup/array", array]:removeValue(Element_n)
         }
         
         EGP:egpRemove(Element_i)
@@ -146,17 +161,13 @@ if(changed(0)) {
     #- OPEN
     #
     function egpGroupOpen(G_n:string) {
-        local OpenGroups = EGPS["groups/open", array]
-        if(!OpenGroups:getIndex(G_n)) {
-            EGPS["groups/open", array] = EGPS["groups/open", array]:add(array(G_n))
-        }
+        EGPS["groups/open", array]:addNoAvailableValue(G_n)
     }
     #
     #- CLOSE
     #
     function egpGroupClose(G_n:string) {
-        local OpenGroups = EGPS["groups/open", array]
-        EGPS["groups/open", array]:removeIndex(G_n)
+        EGPS["groups/open", array]:removeValue(G_n)
     }
     #
     #- CLEAR
@@ -164,7 +175,7 @@ if(changed(0)) {
     function egpGroupClear(G_n:string) {
         foreach(C, Element_n:string = EGPS[G_n + "/egpGroup/array", array]) {
             local Element_T = EGPS[Element_n + "/table", table]
-            Element_T["groups", array]:removeIndex(G_n)
+            Element_T["groups", array]:removeValue(G_n)
         }
         EGPS[G_n + "/egpGroup/array", array] = array()
     }
@@ -187,7 +198,7 @@ if(changed(0)) {
         local Element_i = egpGiveFreeIndex(Element_n)
         
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             
             local Element_T = table(
@@ -214,7 +225,7 @@ if(changed(0)) {
         local Element_i = egpGiveFreeIndex(Element_n)
         
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             
             local Element_T = table(
@@ -239,7 +250,7 @@ if(changed(0)) {
         local Element_i = egpGiveFreeIndex(Element_n)
         
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             
             local Element_T = table(
@@ -264,7 +275,7 @@ if(changed(0)) {
         local Element_i = egpGiveFreeIndex(Element_n)
         
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             
             local Element_T = table(
@@ -290,7 +301,7 @@ if(changed(0)) {
         local Element_i = egpGiveFreeIndex(Element_n)
         
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             
             local Element_T = table(
@@ -310,7 +321,7 @@ if(changed(0)) {
         local Element_i = egpGiveFreeIndex(Element_n)
         
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             
             local Element_T = table(
@@ -331,7 +342,7 @@ if(changed(0)) {
         local Element_i = egpGiveFreeIndex(Element_n)
         
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             
             local Element_T = table(
@@ -356,7 +367,7 @@ if(changed(0)) {
         local Element_i = egpGiveFreeIndex(Element_n)
         
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             
             local Element_T = table(
@@ -376,7 +387,7 @@ if(changed(0)) {
         local Element_i = egpGiveFreeIndex(Element_n)
         
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             
             local Element_T = table(
@@ -396,7 +407,7 @@ if(changed(0)) {
         local Element_i = egpGiveFreeIndex(Element_n)
         
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             
             local Element_T = table(
@@ -416,7 +427,7 @@ if(changed(0)) {
         local Element_i = egpGiveFreeIndex(Element_n)
         
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             
             local Element_T = table(
@@ -443,18 +454,17 @@ if(changed(0)) {
             local Parent_T = EGPS[Parent_n + "/table", table]
             local Parent_i = Parent_T["index", number]
             if(Parent_i) {
-                local EGP = EGPS["egp_w", wirelink]
+                local EGP = EGPS["egp/wirelink", wirelink]
                 
                 local OldParent_n = Element_T["parent", string]
                 if(OldParent_n) {
-                    if(!EGPS[OldParent_n + "/table", table]["child", array]:removeIndex(Element_n)) {
+                    if(!EGPS[OldParent_n + "/table", table]["child", array]:removeValue(Element_n)) {
                         print("error#parent2#" + Element_n)
                     }
                 }
                 
                 local Parent_Child = Parent_T["child", array]
-                if(!Parent_Child:getIndex(Element_n)) {
-                    Parent_T["child", array] = Parent_Child:add(array(Element_n))
+                if(!Parent_T["child", array]:addNoAvailableValue(Element_n)) {
                 }
                 else {
                     print("error#parent3#" + Element_n)
@@ -480,7 +490,7 @@ if(changed(0)) {
     function egpSetPos(Element_n:string, Element_p:vector2) {
         local Element_i = EGPS[Element_n + "/table", table]["index", number]
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             EGP:egpPos(Element_i,Element_p)
         }
@@ -497,7 +507,7 @@ if(changed(0)) {
     function egpSetAng(Element_n:string, Element_a:number) {
         local Element_i = EGPS[Element_n + "/table", table]["index", number]
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             EGP:egpAngle(Element_i,Element_a)
         }
@@ -514,7 +524,7 @@ if(changed(0)) {
     function egpSetSize(Element_n:string, Element_s:vector2) {
         local Element_i = EGPS[Element_n + "/table", table]["index", number]
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             EGP:egpSize(Element_i,Element_s)
         }
@@ -528,7 +538,7 @@ if(changed(0)) {
     function egpSetSize(Element_n:string, Element_s:number) {
         local Element_i = EGPS[Element_n + "/table", table]["index", number]
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             EGP:egpSize(Element_i,Element_s)
         }
@@ -545,7 +555,7 @@ if(changed(0)) {
     function egpSetMaterial(Element_n:string, Element_m:string) {
         local Element_i = EGPS[Element_n + "/table", table]["index", number]
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             EGP:egpMaterial(Element_i,Element_m)
         }
@@ -562,7 +572,7 @@ if(changed(0)) {
     function egpSetColor(Element_n:string, RGB:vector) {
         local Element_i = EGPS[Element_n + "/table", table]["index", number]
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             EGP:egpColor(Element_i,RGB)
         }
@@ -597,7 +607,7 @@ if(changed(0)) {
     function egpSetAlpha(Element_n:string, Element_a:number) {
         local Element_i = EGPS[Element_n + "/table", table]["index", number]
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             EGP:egpSize(Element_i,Element_a)
         }
@@ -650,7 +660,7 @@ if(changed(0)) {
     function egpSetText(Element_n:string, Element_t:string) {
         local Element_i = EGPS[Element_n + "/table", table]["index", number]
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             EGP:egpSetText(Element_i,Element_t)
         }
@@ -667,7 +677,7 @@ if(changed(0)) {
     function egpSetAlign(Element_n:string, [Element_ah Element_av]:number) {
         local Element_i = EGPS[Element_n + "/table", table]["index", number]
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             EGP:egpAlign(Element_i,Element_ah,Element_av)
         }
@@ -684,7 +694,7 @@ if(changed(0)) {
     function egpSetFont([Element_n Element_f]:string, Element_fs:number) {
         local Element_i = EGPS[Element_n + "/table", table]["index", number]
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             EGP:egpFont(Element_i,Element_f,Element_fs)
         }
@@ -698,7 +708,7 @@ if(changed(0)) {
     function egpSetFont([Element_n Element_f]:string) {
         local Element_i = EGPS[Element_n + "/table", table]["index", number]
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             EGP:egpFont(Element_i,Element_f)
         }
@@ -717,7 +727,7 @@ if(changed(0)) {
         local Element_i = Element_T["index", number]
         if(Element_i) {
             if(Element_T["type", string] == "3DTracker") {
-                local EGP = EGPS["egp_w", wirelink]
+                local EGP = EGPS["egp/wirelink", wirelink]
                 
                 EGP:egp3DTracker(Element_i,Element_p)
             }
@@ -738,7 +748,7 @@ if(changed(0)) {
     function egpSetFidelity(Element_n:string, Element_f:number) {
         local Element_i = EGPS[Element_n + "/table", table]["index", number]
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             EGP:egpFidelity(Element_i,Element_f)
         }
@@ -755,7 +765,7 @@ if(changed(0)) {
     function egpSetRadius(Element_n:string, Element_r:number) {
         local Element_i = EGPS[Element_n + "/table", table]["index", number]
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             EGP:egpRadius(Element_i,Element_r)
         }
@@ -774,7 +784,7 @@ if(changed(0)) {
         local Element2_T = EGPS[Element2_n + "/table", table]
         local Element2_i = Element2_T["index", number]
         if(Element1_i & Element2_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             local Element2_o = Element2_T["order", number]
             if(!Element2_o) {Element2_o = EGP:egpOrder(Element2_i)}
@@ -800,7 +810,7 @@ if(changed(0)) {
     function string egpGetParent(Element_n:string) {
         local Element_i = EGPS[Element_n + "/table", table]["index", number]
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             local Parent_i = EGP:egpParent(Element_i)
             return EGPS[Parent_i + "/table", table]["name", string]
@@ -827,7 +837,7 @@ if(changed(0)) {
     function vector2 egpGetPos(Element_n:string) {
         local Element_i = EGPS[Element_n + "/table", table]["index", number]
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             return EGP:egpPos(Element_i)
         }
@@ -839,7 +849,7 @@ if(changed(0)) {
     function vector2 egpGetGlobalPos(Element_n:string) {
         local Element_i = EGPS[Element_n + "/table", table]["index", number]
         if(Element_i) {
-            local EGParent_w = EGPS["egp_w", wirelink]
+            local EGParent_w = EGPS["egp/wirelink", wirelink]
             
             local Element_p = EGParent_w:egpPos(Element_i)
             local Parent_i = EGParent_w:egpParent(Element_i)
@@ -861,7 +871,7 @@ if(changed(0)) {
     function number egpGetAng(Element_n:string) {
         local Element_i = EGPS[Element_n + "/table", table]["index", number]
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             return EGP:egpAngle(Element_i)
         }
@@ -873,7 +883,7 @@ if(changed(0)) {
     function number egpGetGlobalAng(Element_n:string) {
         local Element_i = EGPS[Element_n + "/table", table]["index", number]
         if(Element_i) {
-            local EGParent_w = EGPS["egp_w", wirelink]
+            local EGParent_w = EGPS["egp/wirelink", wirelink]
             
             local Element_a = EGParent_w:egpAngle(Element_i)
             local Parent_i = EGParent_w:egpParent(Element_i)
@@ -895,7 +905,7 @@ if(changed(0)) {
     function vector2 egpGetSize(Element_n:string) {
         local Element_i = EGPS[Element_n + "/table", table]["index", number]
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             return EGP:egpSize(Element_i)
         }
@@ -907,7 +917,7 @@ if(changed(0)) {
     function number egpGetSizeNum(Element_n:string) {
         local Element_i = EGPS[Element_n + "/table", table]["index", number]
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             return EGP:egpSizeNum(Element_i)
         }
@@ -922,7 +932,7 @@ if(changed(0)) {
     function string egpGetMaterial(Element_n:string) {
         local Element_i = EGPS[Element_n + "/table", table]["index", number]
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             return EGP:egpMaterial(Element_i)
         }
@@ -937,7 +947,7 @@ if(changed(0)) {
     function vector egpGetColor(Element_n:string) {
         local Element_i = EGPS[Element_n + "/table", table]["index", number]
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             return EGP:egpColor(Element_i)
         }
@@ -952,7 +962,7 @@ if(changed(0)) {
     function number egpGetAlpha(Element_n:string) {
         local Element_i = EGPS[Element_n + "/table", table]["index", number]
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             return EGP:egpAlpha(Element_i)
         }
@@ -967,7 +977,7 @@ if(changed(0)) {
     function number egpGetFidelity(Element_n:string) {
         local Element_i = EGPS[Element_n + "/table", table]["index", number]
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             return EGP:egpFidelity(Element_i)
         }
@@ -982,7 +992,7 @@ if(changed(0)) {
     function number egpGetRadius(Element_n:string) {
         local Element_i = EGPS[Element_n + "/table", table]["index", number]
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             return EGP:egpRadius(Element_i)
         }
@@ -998,7 +1008,7 @@ if(changed(0)) {
         local Element_T = EGPS[Element_n + "/table", table]
         local Element_i = Element_T["index", number]
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             local Element_o = Element_T["order", number]
             if(!Element_o) {Element_o = EGP:egpOrder(Element_i)}
@@ -1032,7 +1042,7 @@ if(changed(0)) {
         local Element_T = EGPS[Element_n + "/table", table]
         local Element_i = Element_T["index", number]
         if(Element_i) {
-            local EGP = EGPS["egp_w", wirelink]
+            local EGP = EGPS["egp/wirelink", wirelink]
             
             switch(Element_T["type", string]) {
                 case "box",
@@ -1045,7 +1055,7 @@ if(changed(0)) {
                     return Vector2:length() <= Element_s[1]
                 break
                 default,
-                    print("error#inrange#" + Element_n)
+                    print("error#inrange#" + Element_n + "#" + Element_T["type", string])
                     return 0
                 break
             }
@@ -1066,6 +1076,6 @@ if(changed(0)) {
     
     
     if(entity():getName() == "EGPS") {
-        setName("EGPS\nVer. 29.10.2017  4:48")
+        setName("EGPS\nVer. 29.10.2017  17:18")
     }
 }
