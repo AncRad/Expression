@@ -1261,6 +1261,7 @@ if(clk("EGPSupdateSistem") | httpClk()) {
             EGPSG = gTable("EGPSG" + entity():toString())
             if(EGPSG["updateMode", number]) {
                 EGPSG:clear()
+                printColor("")
             }
             else {
                 EGPS["EGPSupdateSistem/step", number] = 1
@@ -1285,7 +1286,7 @@ if(clk("EGPSupdateSistem") | httpClk()) {
                         Name = "EGPS"
                     }
                     setName(Name)
-                    print("https://raw.githubusercontent.com/AncRad/expression/master/EGPS")
+                    printColor(vec(255,75,0), "[EGPS] ", vec(255), "Вы можете загрузить код вручную. ", vec(0,100,255), "https://raw.githubusercontent.com/AncRad/expression/master/EGPS")
                     break
                 #endif
             }
@@ -1331,3 +1332,4 @@ if(clk("EGPSupdateSistem") | httpClk()) {
         break
     }
 }
+
