@@ -33,14 +33,14 @@ if(changed(0)) {
     #
     #- REMOVE MATCHING VALUE
     #
-    function number array:removeValue([Value Delimiter]:string) {
+    function array array:removeValue([Value Delimiter]:string) {
         local Index = This:getIndex(Value, Delimiter)
         if(Index) {
             This:remove(Index)
         }
-        return Index
+        return This
     }
-    function number array:removeValue(Value:string) {
+    function array array:removeValue(Value:string) {
         return This:removeValue(Value, "")
     }
     #
@@ -49,8 +49,7 @@ if(changed(0)) {
     function array array:addNoAvailableValue([Value Delimiter]:string) {
         local Index = This:getIndex(Value, Delimiter)
         if(!Index) {
-            This:pushString(Value)
-            #This = This:add(array(Value))
+            This = This:add(array(Value))
         }
         return This
     }
@@ -154,6 +153,21 @@ if(changed(0)) {
         local E_T = EGPS[E_n + "/table", table]
         local E_i = E_T["index", number]
         
+        #####################   !!!!!!                  
+        foreach(C, ParentType:string = E_T["parentTypes", array]) {
+            local P_n = E_T[ParentType + "/parent", string]
+            if(P_n) {
+                local P_T = EGPS[P_n + "/table", table]
+                EGPS[P_n + "/table", table][ParentType + "/childList", array] = EGPS[P_n + "/table", table][ParentType + "/childList", array]:removeValue(E_n)
+                EGPS[P_n + "/table", table] = P_T
+            }
+            elseif(ParentType != "position") {
+                EGPS[ParentType + "/childList", array] = EGPS[ParentType + "/childList", array]:removeValue(E_n)
+            }
+        }
+        
+        EGPS:remove(E_n + "/table")
+        
         
         EGP:egpRemove(E_i)
         EGPS[E_n + "/table", table]:clear()
@@ -214,7 +228,7 @@ if(changed(0)) {
             "name"   = E_n,
             "index"  = E_i,
             "groups" = Groups,
-            "parentTypeList" = array("position") #array("position", "click#")
+            "parentTypes" = array("position") #array("position", "click#")
         ))
         EGPS["lastName", string] = E_n
         EGPS["position/parent/list", array] = EGPS["position/parent/list", array]:add(array(E_n))
@@ -238,7 +252,7 @@ if(changed(0)) {
             Index = EGPS["indexCounter", number] = EGPS["indexCounter", number] + 1
             return Index
         }
-        printColor(vec(255,75,0), "[EGPS] ", vec(255,0,0), " .", vec(255), " \"" + E_n + "\"")
+        printColor(vec(255,75,0), "[EGPS] ", vec(255,0,0), " Закончились свободные индексы. ", vec(0,100,255), " \"" + E_n + "\"")
         return 0
     }
     #
@@ -522,10 +536,18 @@ if(changed(0)) {
             if(P_i) {
                 local EGP = EGPS["egp_w", wirelink]
                 
-                
-                
-                EGPS[E_n + "/table", table] = E_T #printTable(E_T) print("#######")
-                EGPS[P_n + "/table", table] = P_T #printTable(P_T)
+                #####################   !!!ВНИМАНИЕ!!!   СТОРОННИЕ ВИДЫ ПАРЕНТОВ НЕ ОЧИЩАЮТ СВОИ СПИСКИ ЗАПАРЕНЧЕННЫХ К НИМ ОБЪЕКТОВ ПРИ ПОВТОРНОМ ПАРЕНТЕ ИЛИ ДЕПАРЕНТЕ
+                foreach(C, ParentType:string = E_T["parentTypes", array]) {
+                    local LastP_n = E_T[ParentType + "/parent", string]
+                    if(LastP_n) {
+                        EGPS[LastP_n + "/table", table][ParentType + "/childList", array] = EGPS[LastP_n + "/table", table][ParentType + "/childList", array]:removeValue(E_n)
+                    }
+                    elseif(ParentType != "position") {
+                        EGPS[ParentType + "/childList", array] = EGPS[ParentType + "/childList", array]:removeValue(E_n)
+                    }
+                    P_T[ParentType + "/childList", array] = P_T[ParentType + "/childList", array]:add(array(E_n))
+                    E_T[ParentType + "/parent", string] = P_n
+                }
                 
                 EGP:egpParent(E_i,P_i)
             }
@@ -857,19 +879,23 @@ if(changed(0)) {
     #
     #- CLICK TARGET
     #
-    function string egpClickMode([E_n Tag]:string) {
-        local ParentType_n = "click#" + Tag
+    function egpClickMode([E_n ParentType]:string) {
+        local ParentType = "click#" + ParentType
+        
         local E_T = EGPS[E_n + "/table", table]
-        local P_n = E_T["positionParent", string]
-        
-        
-        
-        
-        EGPS[E_n + "/table", table] = E_T
-        return ParentType_n
+        local P_n = E_T["position/parent", string]
+        if(P_n) {
+            EGPS[P_n + "/table", table][ParentType + "/childList", array] = EGPS[P_n + "/table", table][ParentType + "/childList", array]:add(array(E_n))
+        }
+        else {
+            EGPS[ParentType + "/childList", array] = EGPS[ParentType + "/childList", array]:add(array(E_n))
+        }
+        EGPS[E_n + "/table", table][ParentType + "/parent", string] = P_n
+        EGPS[E_n + "/table", table]["parentTypes", array] = EGPS[E_n + "/table", table]["parentTypes", array]:add(array(ParentType))
+       # print(EGPS[E_n + "/table", table]["parentTypes", array])
     }
-    function egpClickMode(Tag:string) {
-        egpClickMode(EGPS["lastName", string],Tag)
+    function egpClickMode([ParentType]:string) {
+        egpClickMode(EGPS["lastName", string],ParentType)
     }
     function egpClickMode() {
         egpClickMode(EGPS["lastName", string],"")
