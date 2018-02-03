@@ -7,7 +7,6 @@
 
 
 if(changed(0)) {
-    
     function holoClip([ID Index]:number, LocalPos:vector, LocalAng:angle, Offset:number) {
         holoClipEnabled(ID, Index, 1)
         holoClip(ID, Index, LocalPos + vec(Offset,0,0):rotate(LocalAng), vec(1,0,0):rotate(LocalAng), 0)
@@ -177,6 +176,12 @@ if(changed(0)) {
             "offset_list" = table(Holo_offset_vec,Holo_offset_ang)
         )))
     }
+    function addHolo_offset(Holo_offset_ang:angle,Holo_offset_vec:vector) {
+        AddHolo[AddHolo_lastName, table]["actList", table] = AddHolo[AddHolo_lastName, table]["actList", table]:add(table(table(
+            "type"        = "offset",
+            "offset_list" = table(Holo_offset_ang,Holo_offset_vec)
+        )))
+    }
     #
     #- timer
     #
@@ -218,6 +223,24 @@ if(changed(0)) {
             "clip_localPos"    = Holo_clip_localPos,
             "clip_localAng"    = Holo_clip_localAng,
             "clip_localOffset" = Holo_clip_localOffset
+        )))
+    }
+    #
+    #
+    #
+    #
+    #- alpha
+    #
+    function addHolo_alpha(Holo_name:string, Holo_alpha:number) {
+        AddHolo[Holo_name, table]["actList", table] = AddHolo[Holo_name, table]["actList", table]:add(table(table(
+            "type"  = "alpha",
+            "alpha" = Holo_alpha
+        )))
+    }
+    function addHolo_alpha(Holo_alpha:number) {
+        AddHolo[AddHolo_lastName, table]["actList", table] = AddHolo[AddHolo_lastName, table]["actList", table]:add(table(table(
+            "type"  = "alpha",
+            "alpha" = Holo_alpha
         )))
     }
     #
@@ -280,7 +303,7 @@ if(clk("AddHolo")) {
     
     if(holoCanCreate()) {
         if(AddHolo_queye:count()) {
-                timer("AddHolo", 50)
+                timer("AddHolo", 10)
             #
             #- index
             #
@@ -344,6 +367,10 @@ if(clk("AddHolo")) {
             #
             local Holo_entity = holoCreate(Holo_index, Holo_pos, Holo_size, Holo_ang, Holo_color, Holo_model)
             #
+            #- holoMaterial
+            #
+            holoMaterial(Holo_index, Holo_material)
+            #
             #- setModel
             #
             if(CustomModel) {
@@ -362,7 +389,7 @@ if(clk("AddHolo")) {
             #
             if(Holo_parent == "") {                                                     #- holo to holo
                 local Holo_parent_name  = Holo_table["parent/holo", string]
-                local Holo_parent_index = AddHolo[Holo_parent_name, number]
+                local Holo_parent_index = AddHolo[Holo_parent_name + "/index", number]
                 
                 holoParent(Holo_index,Holo_parent_index)
             }
@@ -385,9 +412,9 @@ if(clk("AddHolo")) {
             #- actions
             #
             if(ActList:count()) {
-                for(C = 1,ActList:count()) {
-                    local Act_table = ActList[1, table]
-                    local Act_type = Act_table["type", string] print(C + Act_type)
+                while(ActList:exists(1)) {
+                    local Act_table = ActList:removeTable(1)
+                    local Act_type = Act_table["type", string] #print(C + Act_type)
                     
                     switch(Act_type) {
                         case "offset",
@@ -417,6 +444,11 @@ if(clk("AddHolo")) {
                             local Holo_clip_counter = Holo_table["clip_counter", number] = Holo_table["clip_counter", number] + 1
                             holoClip(Holo_index, Holo_clip_counter, Holo_clip_localPos, Holo_clip_localAng, Holo_clip_localOffset)
                         break
+                        case "alpha",
+                            local Holo_alpha = Act_table["alpha", number]
+                            
+                            holoAlpha(Holo_index, Holo_alpha)
+                        break
                         default,
                             
                         break
@@ -428,7 +460,7 @@ if(clk("AddHolo")) {
             #
             AddHolo = AddHolo:merge(table(
                 Holo_index + "/name"   = Holo_name,
-                Holo_name  + ""        = Holo_index,
+                Holo_name  + "/index"  = Holo_index,
                 Holo_name  + "/entity" = Holo_entity
             ))
         }
