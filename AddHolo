@@ -12,31 +12,36 @@ if(changed(0)) {
         holoClip(ID, Index, LocalPos + vec(Offset,0,0):rotate(LocalAng), vec(1,0,0):rotate(LocalAng), 0)
     }
     
-    
+    #
+    #- unshiftHolo
+    #
+    function unshiftHolo() {
+        AddHolo_queye:unshiftString(AddHolo_queye:removeString(AddHolo_queye:count()))
+    }
     #
     #- toWorld
     #
-    function addHoloToWorld(Holo_name:string, Holo_toWorld_entity:entity) {
+    function addHolo_toWorld(Holo_name:string, Holo_toWorld_entity:entity) {
         AddHolo[Holo_name, table] = AddHolo[Holo_name, table]:merge(table(
             "toWorld"        = "entity",
             "toWorld/entity" = Holo_toWorld_entity
         ))
     }
-    function addHoloToWorld(Holo_toWorld_entity:entity) {
+    function addHolo_toWorld(Holo_toWorld_entity:entity) {
         AddHolo[AddHolo_lastName, table] = AddHolo[AddHolo_lastName, table]:merge(table(
             "toWorld"        = "entity",
             "toWorld/entity" = Holo_toWorld_entity
         ))
     }
     #- 
-    function addHoloToWorld(Holo_name:string, Holo_toWorld_entity:entity, Holo_toWorld_attachment:string) {
+    function addHolo_toWorld(Holo_name:string, Holo_toWorld_entity:entity, Holo_toWorld_attachment:string) {
         AddHolo[Holo_name, table] = AddHolo[Holo_name, table]:merge(table(
             "toWorld"            = "attachment",
             "toWorld/entity"     = Holo_toWorld_entity,
             "toWorld/attachment" = Holo_toWorld_attachment
         ))
     }
-    function addHoloToWorld(Holo_toWorld_entity:entity, Holo_toWorld_attachment:string) {
+    function addHolo_toWorld(Holo_toWorld_entity:entity, Holo_toWorld_attachment:string) {
         AddHolo[AddHolo_lastName, table] = AddHolo[AddHolo_lastName, table]:merge(table(
             "toWorld"            = "attachment",
             "toWorld/entity"     = Holo_toWorld_entity,
@@ -44,14 +49,14 @@ if(changed(0)) {
         ))
     }
     #- 
-    function addHoloToWorld(Holo_name:string, Holo_toWorld_holo:string, Holo_toWorld_attachment:string) {
+    function addHolo_toWorld(Holo_name:string, Holo_toWorld_holo:string, Holo_toWorld_attachment:string) {
         AddHolo[Holo_name, table] = AddHolo[Holo_name, table]:merge(table(
             "toWorld"            = "attachment",
             "toWorld/entity"     = Holo_toWorld_holo,
             "toWorld/attachment" = Holo_toWorld_attachment
         ))
     }
-    function addHoloToWorld(Holo_toWorld_holo:string, Holo_toWorld_attachment:string) {
+    function addHolo_toWorld(Holo_toWorld_holo:string, Holo_toWorld_attachment:string) {
         AddHolo[AddHolo_lastName, table] = AddHolo[AddHolo_lastName, table]:merge(table(
             "toWorld"            = "attachment",
             "toWorld/entity"     = Holo_toWorld_holo,
@@ -61,27 +66,27 @@ if(changed(0)) {
     #
     #- parent
     #
-    function addHoloParent(Holo_name:string, Holo_parent_entity:entity) {
+    function addHolo_parent(Holo_name:string, Holo_parent_entity:entity) {
         AddHolo[Holo_name, table] = AddHolo[Holo_name, table]:merge(table(
             "parent"        = "entity",
             "parent/entity" = Holo_parent_entity
         ))
     }
-    function addHoloParent(Holo_parent_entity:entity) {
+    function addHolo_parent(Holo_parent_entity:entity) {
         AddHolo[AddHolo_lastName, table] = AddHolo[AddHolo_lastName, table]:merge(table(
             "parent"        = "entity",
             "parent/entity" = Holo_parent_entity
         ))
     }
     #- 
-    function addHoloParent(Holo_name:string, Holo_parent_entity:entity, Holo_parent_attachment:string) {
+    function addHolo_parent(Holo_name:string, Holo_parent_entity:entity, Holo_parent_attachment:string) {
         AddHolo[Holo_name, table] = AddHolo[Holo_name, table]:merge(table(
             "parent"             = "attachment",
             "parent/entity"      = Holo_parent_entity,
             "parent/attachment"  = Holo_parent_attachment
         ))
     }
-    function addHoloParent(Holo_parent_entity:entity, Holo_parent_attachment:string) {
+    function addHolo_parent(Holo_parent_entity:entity, Holo_parent_attachment:string) {
         AddHolo[AddHolo_lastName, table] = AddHolo[AddHolo_lastName, table]:merge(table(
             "parent"             = "attachment",
             "parent/entity"      = Holo_parent_entity,
@@ -89,14 +94,14 @@ if(changed(0)) {
         ))
     }
     #- 
-    function addHoloParent(Holo_name:string, Holo_parent_holo:string, Holo_parent_attachment:string) {
+    function addHolo_parent(Holo_name:string, Holo_parent_holo:string, Holo_parent_attachment:string) {
         AddHolo[Holo_name, table] = AddHolo[Holo_name, table]:merge(table(
             "parent"             = "attachment",
             "parent/entity"      = Holo_parent_holo,
             "parent/attachment"  = Holo_parent_attachment
         ))
     }
-    function addHoloParent(Holo_parent_holo:string, Holo_parent_attachment:string) {
+    function addHolo_parent(Holo_parent_holo:string, Holo_parent_attachment:string) {
         AddHolo[AddHolo_lastName, table] = AddHolo[AddHolo_lastName, table]:merge(table(
             "parent"             = "attachment",
             "parent/entity"      = Holo_parent_holo,
@@ -106,7 +111,7 @@ if(changed(0)) {
     #
     #- into
     #
-    function addHoloINTO(Holo_name:string, Holo_into_entity:entity) {
+    function addHolo_INTO(Holo_name:string, Holo_into_entity:entity) {
         AddHolo[Holo_name, table] = AddHolo[Holo_name, table]:merge(table(
             "parent"         = "entity",
             "parent/entity"  = Holo_into_entity,
@@ -114,7 +119,7 @@ if(changed(0)) {
             "toWorld/entity" = Holo_into_entity
         ))
     }
-    function addHoloINTO(Holo_into_entity:entity) {
+    function addHolo_INTO(Holo_into_entity:entity) {
         AddHolo[AddHolo_lastName, table] = AddHolo[AddHolo_lastName, table]:merge(table(
             "parent"         = "entity",
             "parent/entity"  = Holo_into_entity,
@@ -123,39 +128,43 @@ if(changed(0)) {
         ))
     }
     #- 
-    function addHoloINTO(Holo_name:string, Holo_into_entity:entity, Holo_into_attachment:string) {
+    function addHolo_INTO(Holo_name:string, Holo_into_entity:entity, Holo_into_attachment:string) {
         AddHolo[Holo_name, table] = AddHolo[Holo_name, table]:merge(table(
             "parent"             = "attachment",
             "parent/entity"      = Holo_into_entity,
             "parent/attachment"  = Holo_into_attachment,
+            "toWorld"            = "attachment",
             "toWorld/entity"     = Holo_into_entity,
             "toWorld/attachment" = Holo_into_attachment
         ))
     }
-    function addHoloINTO(Holo_into_entity:entity, Holo_into_attachment:string) {
+    function addHolo_INTO(Holo_into_entity:entity, Holo_into_attachment:string) {
         AddHolo[AddHolo_lastName, table] = AddHolo[AddHolo_lastName, table]:merge(table(
             "parent"             = "attachment",
             "parent/entity"      = Holo_into_entity,
             "parent/attachment"  = Holo_into_attachment,
+            "toWorld"            = "attachment",
             "toWorld/entity"     = Holo_into_entity,
             "toWorld/attachment" = Holo_into_attachment
         ))
     }
     #- 
-    function addHoloINTO(Holo_name:string, Holo_into_holo:string, Holo_into_attachment:string) {
+    function addHolo_INTO(Holo_name:string, Holo_into_holo:string, Holo_into_attachment:string) {
         AddHolo[Holo_name, table] = AddHolo[Holo_name, table]:merge(table(
             "parent"             = "attachment",
             "parent/entity"      = Holo_into_holo,
             "parent/attachment"  = Holo_into_attachment,
+            "toWorld"            = "attachment",
             "toWorld/entity"     = Holo_into_holo,
             "toWorld/attachment" = Holo_into_attachment
         ))
     }
-    function addHoloINTO(Holo_into_holo:string, Holo_into_attachment:string) {
+    function addHolo_INTO(Holo_into_holo:string, Holo_into_attachment:string) {
         AddHolo[AddHolo_lastName, table] = AddHolo[AddHolo_lastName, table]:merge(table(
             "parent"             = "attachment",
             "parent/entity"      = Holo_into_holo,
             "parent/attachment"  = Holo_into_attachment,
+            "toWorld"            = "attachment",
             "toWorld/entity"     = Holo_into_holo,
             "toWorld/attachment" = Holo_into_attachment
         ))
@@ -180,6 +189,18 @@ if(changed(0)) {
         AddHolo[AddHolo_lastName, table]["actList", table] = AddHolo[AddHolo_lastName, table]["actList", table]:add(table(table(
             "type"        = "offset",
             "offset_list" = table(Holo_offset_ang,Holo_offset_vec)
+        )))
+    }
+    function addHolo_offset(Holo_offset_vec:vector) {
+        AddHolo[AddHolo_lastName, table]["actList", table] = AddHolo[AddHolo_lastName, table]["actList", table]:add(table(table(
+            "type"        = "offset",
+            "offset_list" = table(Holo_offset_vec)
+        )))
+    }
+    function addHolo_offset(Holo_offset_ang:angle) {
+        AddHolo[AddHolo_lastName, table]["actList", table] = AddHolo[AddHolo_lastName, table]["actList", table]:add(table(table(
+            "type"        = "offset",
+            "offset_list" = table(Holo_offset_ang)
         )))
     }
     #
@@ -289,8 +310,8 @@ if(changed(0)) {
     #
     if(entity():getName() == "AddHolo") {
         addHolo("1", vec(), vec(1), ang(30,0,0), vec(200), "cube", "", "")
-        addHoloToWorld("1", entity())
-        addHoloParent( "1", entity())
+        addHolo_toWorld("1", entity())
+        addHolo_parent( "1", entity())
         
         addHolo("2", vec(0,0,5), vec(2), ang(), vec(50,50,255), "cube", "", "1")
         
@@ -350,17 +371,17 @@ if(clk("AddHolo")) {
                 }
                 local Holo_toWorld_attachment = Holo_table["toWorld/attachment", string]
                 
-                Holo_pos = Holo_toWorld_entity:attachmentPos(Holo_toWorld_attachment)
-                Holo_ang = Holo_toWorld_entity:attachmentAng(Holo_toWorld_attachment)
                 ActList = ActList:add(table(table(
                     "type"        = "offset",
                     "offset_list" = table(Holo_pos,Holo_ang)
                 )))
+                Holo_pos = Holo_toWorld_entity:attachmentPos(Holo_toWorld_attachment)
+                Holo_ang = Holo_toWorld_entity:attachmentAng(Holo_toWorld_attachment)
             }
             #
             #- scale fix
             #
-            local CustomModel = Holo_model:left(7) == "model/"
+            local CustomModel = Holo_model:left(7) == "models/"
             if(!CustomModel) {Holo_size/=6}
             #
             #- holoCreate
