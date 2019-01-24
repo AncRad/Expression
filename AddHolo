@@ -21,6 +21,18 @@ if(changed(0)) {
     #
     #- toWorld
     #
+    function addHolo_toWorld(Holo_toWorld_name:string) {
+        AddHolo[AddHolo_lastName, table] = AddHolo[AddHolo_lastName, table]:merge(table(
+            "toWorld"      = "",
+            "toWorld/holo" = Holo_toWorld_name
+        ))
+    }
+    function addHolo_toWorld(Holo_name:string, Holo_toWorld_name:string) {
+        AddHolo[Holo_name, table] = AddHolo[Holo_name, table]:merge(table(
+            "toWorld"      = "",
+            "toWorld/holo" = Holo_toWorld_name
+        ))
+    }
     function addHolo_toWorld(Holo_name:string, Holo_toWorld_entity:entity) {
         AddHolo[Holo_name, table] = AddHolo[Holo_name, table]:merge(table(
             "toWorld"        = "entity",
@@ -49,23 +61,28 @@ if(changed(0)) {
         ))
     }
     #- 
-    function addHolo_toWorld(Holo_name:string, Holo_toWorld_holo:string, Holo_toWorld_attachment:string) {
+    function addHolo_toWorld(Holo_name:string, Holo_toWorld_name:string, Holo_toWorld_attachment:string) {
         AddHolo[Holo_name, table] = AddHolo[Holo_name, table]:merge(table(
             "toWorld"            = "attachment",
-            "toWorld/entity"     = Holo_toWorld_holo,
-            "toWorld/attachment" = Holo_toWorld_attachment
-        ))
-    }
-    function addHolo_toWorld(Holo_toWorld_holo:string, Holo_toWorld_attachment:string) {
-        AddHolo[AddHolo_lastName, table] = AddHolo[AddHolo_lastName, table]:merge(table(
-            "toWorld"            = "attachment",
-            "toWorld/entity"     = Holo_toWorld_holo,
+            "toWorld/holo"       = Holo_toWorld_name,
             "toWorld/attachment" = Holo_toWorld_attachment
         ))
     }
     #
     #- parent
     #
+    function addHolo_parent(Holo_parent_name:string) {
+        AddHolo[AddHolo_lastName, table] = AddHolo[AddHolo_lastName, table]:merge(table(
+            "parent"      = "",
+            "parent/holo" = Holo_parent_name
+        ))
+    }
+    function addHolo_parent(Holo_name:string, Holo_parent_name:string) {
+        AddHolo[Holo_name, table] = AddHolo[Holo_name, table]:merge(table(
+            "parent"      = "",
+            "parent/holo" = Holo_parent_name
+        ))
+    }
     function addHolo_parent(Holo_name:string, Holo_parent_entity:entity) {
         AddHolo[Holo_name, table] = AddHolo[Holo_name, table]:merge(table(
             "parent"        = "entity",
@@ -94,23 +111,24 @@ if(changed(0)) {
         ))
     }
     #- 
-    function addHolo_parent(Holo_name:string, Holo_parent_holo:string, Holo_parent_attachment:string) {
+    function addHolo_parent(Holo_name:string, Holo_parent_name:string, Holo_parent_attachment:string) {
         AddHolo[Holo_name, table] = AddHolo[Holo_name, table]:merge(table(
-            "parent"             = "attachment",
-            "parent/entity"      = Holo_parent_holo,
-            "parent/attachment"  = Holo_parent_attachment
-        ))
-    }
-    function addHolo_parent(Holo_parent_holo:string, Holo_parent_attachment:string) {
-        AddHolo[AddHolo_lastName, table] = AddHolo[AddHolo_lastName, table]:merge(table(
-            "parent"             = "attachment",
-            "parent/entity"      = Holo_parent_holo,
-            "parent/attachment"  = Holo_parent_attachment
+            "parent"            = "attachment",
+            "parent/holo"       = Holo_parent_name,
+            "parent/attachment" = Holo_parent_attachment
         ))
     }
     #
     #- into
     #
+    function addHolo_INTO(Holo_name:string, Holo_into_name:string) {
+        AddHolo[Holo_name, table] = AddHolo[Holo_name, table]:merge(table(
+            "parent"       = "",
+            "parent/holo"  = Holo_into_name,
+            "toWorld"      = "",
+            "toWorld/holo" = Holo_into_name
+        ))
+    }
     function addHolo_INTO(Holo_name:string, Holo_into_entity:entity) {
         AddHolo[Holo_name, table] = AddHolo[Holo_name, table]:merge(table(
             "parent"         = "entity",
@@ -149,27 +167,31 @@ if(changed(0)) {
         ))
     }
     #- 
-    function addHolo_INTO(Holo_name:string, Holo_into_holo:string, Holo_into_attachment:string) {
+    function addHolo_INTO(Holo_name:string, Holo_into_name:string, Holo_into_attachment:string) {
         AddHolo[Holo_name, table] = AddHolo[Holo_name, table]:merge(table(
             "parent"             = "attachment",
-            "parent/entity"      = Holo_into_holo,
+            "parent/holo"        = Holo_into_name,
             "parent/attachment"  = Holo_into_attachment,
             "toWorld"            = "attachment",
-            "toWorld/entity"     = Holo_into_holo,
-            "toWorld/attachment" = Holo_into_attachment
-        ))
-    }
-    function addHolo_INTO(Holo_into_holo:string, Holo_into_attachment:string) {
-        AddHolo[AddHolo_lastName, table] = AddHolo[AddHolo_lastName, table]:merge(table(
-            "parent"             = "attachment",
-            "parent/entity"      = Holo_into_holo,
-            "parent/attachment"  = Holo_into_attachment,
-            "toWorld"            = "attachment",
-            "toWorld/entity"     = Holo_into_holo,
+            "toWorld/holo"       = Holo_into_name,
             "toWorld/attachment" = Holo_into_attachment
         ))
     }
     
+    
+    ################
+    #
+    #- other actions
+    #
+    #
+    #- manual dialing
+    #
+    function addHolo_action(Holo_name:string, Action:table) {
+        AddHolo[Holo_name, table]["actList", table] = AddHolo[Holo_name, table]["actList", table]:add(table(Action))
+    }
+    function addHolo_action(Action:table) {
+        AddHolo[AddHolo_lastName, table]["actList", table] = AddHolo[AddHolo_lastName, table]["actList", table]:add(table(Action))
+    }
     #
     #- offset
     #
@@ -208,21 +230,21 @@ if(changed(0)) {
     #
     function addHolo_timer(Holo_name:string, Holo_timer_name:string, Holo_timer_time:number) {
         AddHolo[Holo_name, table]["actList", table] = AddHolo[Holo_name, table]["actList", table]:add(table(table(
-            "type"        = "timer",
+            "type"       = "timer",
             "timer_name" = Holo_timer_name,
             "timer_time" = Holo_timer_time
         )))
     }
     function addHolo_timer(Holo_timer_name:string, Holo_timer_time:number) {
         AddHolo[AddHolo_lastName, table]["actList", table] = AddHolo[AddHolo_lastName, table]["actList", table]:add(table(table(
-            "type"        = "timer",
+            "type"       = "timer",
             "timer_name" = Holo_timer_name,
             "timer_time" = Holo_timer_time
         )))
     }
     function addHolo_timer(Holo_timer_name:string) {
         AddHolo[AddHolo_lastName, table]["actList", table] = AddHolo[AddHolo_lastName, table]["actList", table]:add(table(table(
-            "type"        = "timer",
+            "type"       = "timer",
             "timer_name" = Holo_timer_name,
             "timer_time" = 1
         )))
@@ -232,7 +254,7 @@ if(changed(0)) {
     #
     function addHolo_clip(Holo_name:string, Holo_clip_localPos:vector, Holo_clip_localAng:angle, Holo_clip_localOffset:number) {
         AddHolo[Holo_name, table]["actList", table] = AddHolo[Holo_name, table]["actList", table]:add(table(table(
-            "type"        = "clip",
+            "type"             = "clip",
             "clip_localPos"    = Holo_clip_localPos,
             "clip_localAng"    = Holo_clip_localAng,
             "clip_localOffset" = Holo_clip_localOffset
@@ -240,15 +262,56 @@ if(changed(0)) {
     }
     function addHolo_clip(Holo_clip_localPos:vector, Holo_clip_localAng:angle, Holo_clip_localOffset:number) {
         AddHolo[AddHolo_lastName, table]["actList", table] = AddHolo[AddHolo_lastName, table]["actList", table]:add(table(table(
-            "type"        = "clip",
+            "type"             = "clip",
             "clip_localPos"    = Holo_clip_localPos,
             "clip_localAng"    = Holo_clip_localAng,
             "clip_localOffset" = Holo_clip_localOffset
         )))
     }
     #
+    #- clip local
     #
+    function addHolo_clip(Holo_name:string, Holo_clip_localPos:vector, Clip_localPos_name:string, Holo_clip_localAng:angle, Clip_localAng_name:string, Holo_clip_localOffset:number) {
+        AddHolo[AddHolo_lastName, table]["actList", table] = AddHolo[Holo_name, table]["actList", table]:add(table(table(
+            "type"              = "clipLocal",
+            "clip_localPos"     = Holo_clip_localPos,
+            "clip_localPos_obj" = Clip_localPos_name,
+            "clip_localAng"     = Holo_clip_localAng,
+            "clip_localAng_obj" = Clip_localAng_name,
+            "clip_localOffset"  = Holo_clip_localOffset
+        )))
+    }
+    function addHolo_clip(Holo_clip_localPos:vector, Clip_localPos_name:string, Holo_clip_localAng:angle, Clip_localAng_name:string, Holo_clip_localOffset:number) {
+        AddHolo[AddHolo_lastName, table]["actList", table] = AddHolo[AddHolo_lastName, table]["actList", table]:add(table(table(
+            "type"              = "clipLocal",
+            "clip_localPos"     = Holo_clip_localPos,
+            "clip_localPos_obj" = Clip_localPos_name,
+            "clip_localAng"     = Holo_clip_localAng,
+            "clip_localAng_obj" = Clip_localAng_name,
+            "clip_localOffset"  = Holo_clip_localOffset
+        )))
+    }
     #
+    function addHolo_clip(Holo_name:string, Holo_clip_localPos:vector, Clip_localPos_entity:entity, Holo_clip_localAng:angle, Clip_localAng_entity:entity, Holo_clip_localOffset:number) {
+        AddHolo[Holo_name, table]["actList", table] = AddHolo[Holo_name, table]["actList", table]:add(table(table(
+            "type"              = "clipLocal",
+            "clip_localPos"     = Holo_clip_localPos,
+            "clip_localPos_obj" = Clip_localPos_entity,
+            "clip_localAng"     = Holo_clip_localAng,
+            "clip_localAng_obj" = Clip_localAng_entity,
+            "clip_localOffset"  = Holo_clip_localOffset
+        )))
+    }
+    function addHolo_clip(Holo_clip_localPos:vector, Clip_localPos_entity:entity, Holo_clip_localAng:angle, Clip_localAng_entity:entity, Holo_clip_localOffset:number) {
+        AddHolo[AddHolo_lastName, table]["actList", table] = AddHolo[AddHolo_lastName, table]["actList", table]:add(table(table(
+            "type"              = "clipLocal",
+            "clip_localPos"     = Holo_clip_localPos,
+            "clip_localPos_obj" = Clip_localPos_entity,
+            "clip_localAng"     = Holo_clip_localAng,
+            "clip_localAng_obj" = Clip_localAng_entity,
+            "clip_localOffset"  = Holo_clip_localOffset
+        )))
+    }
     #
     #- alpha
     #
@@ -262,6 +325,34 @@ if(changed(0)) {
         AddHolo[AddHolo_lastName, table]["actList", table] = AddHolo[AddHolo_lastName, table]["actList", table]:add(table(table(
             "type"  = "alpha",
             "alpha" = Holo_alpha
+        )))
+    }
+    #
+    #- render fx
+    #
+    function addHolo_renderFX(Holo_name:string, Holo_effect:number) {
+        AddHolo[Holo_name, table]["actList", table] = AddHolo[Holo_name, table]["actList", table]:add(table(table(
+            "type"  = "renderFX",
+            "effect" = Holo_effect
+        )))
+    }
+    function addHolo_renderFX(Holo_effect:number) {
+        AddHolo[AddHolo_lastName, table]["actList", table] = AddHolo[AddHolo_lastName, table]["actList", table]:add(table(table(
+            "type"  = "renderFX",
+            "effect" = Holo_effect
+        )))
+    }
+    #
+    #- draw shadow
+    #
+    function addHolo_drawShadow(Holo_name:string) {
+        AddHolo[Holo_name, table]["actList", table] = AddHolo[Holo_name, table]["actList", table]:add(table(table(
+            "type"  = "drawShadow"
+        )))
+    }
+    function addHolo_drawShadow() {
+        AddHolo[AddHolo_lastName, table]["actList", table] = AddHolo[AddHolo_lastName, table]["actList", table]:add(table(table(
+            "type"  = "drawShadow"
         )))
     }
     #
@@ -302,7 +393,12 @@ if(changed(0)) {
     #
     #- start
     #
-    timer("AddHolo", 1)
+    function addHolo_start(Time:number) {
+        timer("AddHolo", Time)
+    }
+    function addHolo_start() {
+        timer("AddHolo", 1)
+    }
     
     
     #
@@ -322,13 +418,17 @@ if(changed(0)) {
 if(clk("AddHolo")) {
         timer("AddHolo", 500)
     
-    if(holoCanCreate()) {
-        if(AddHolo_queye:count()) {
-                timer("AddHolo", 10)
+    local Count = AddHolo_queye:count()
+    if(Count) {
+        timer("AddHolo", 50)
+        
+        while(Count & holoCanCreate() & perf(70)) {
+            Count--
             #
             #- index
             #
-            local Holo_index = AddHolo_counter = AddHolo_counter + 1
+            AddHolo_counter = AddHolo_counter + 1
+            local Holo_index = AddHolo_counter
             #
             #- data
             #
@@ -366,7 +466,7 @@ if(clk("AddHolo")) {
             elseif(Holo_toWorld == "attachment") {                                     #- holo to attachment
                 local Holo_toWorld_entity = Holo_table["toWorld/entity", entity]        #- to entity
                 if(!Holo_toWorld_entity) {
-                    local Holo_toWorld_name  = Holo_table["toWorld/entity", string]
+                    local Holo_toWorld_name  = Holo_table["toWorld/holo", string]
                     Holo_toWorld_entity = AddHolo[Holo_toWorld_name + "/entity", entity]      #- to holo
                 }
                 local Holo_toWorld_attachment = Holo_table["toWorld/attachment", string]
@@ -422,7 +522,7 @@ if(clk("AddHolo")) {
             elseif(Holo_parent == "attachment") {                                       #- holo to attachment
                 local Holo_parent_entity = Holo_table["parent/entity", entity]           #- to entity
                 if(!Holo_parent_entity) {
-                    local Holo_toWorld_name  = Holo_table["parent/entity", string]
+                    local Holo_toWorld_name  = Holo_table["parent/holo", string]
                     Holo_parent_entity = AddHolo[Holo_toWorld_name + "/entity", entity]        #- to holo
                 }
                 local Holo_parent_attachment = Holo_table["parent/attachment", string]
@@ -438,6 +538,9 @@ if(clk("AddHolo")) {
                     local Act_type = Act_table["type", string] #print(C + Act_type)
                     
                     switch(Act_type) {
+                            #
+                            #
+                            #
                         case "offset",
                             local Offset_list = Act_table["offset_list", table]
                             
@@ -452,28 +555,71 @@ if(clk("AddHolo")) {
                                 }
                             }
                         break
+                            #
+                            #
+                            #
                         case "timer",
                             local Holo_timer_name = Act_table["timer_name", string]
                             local Holo_timer_time = Act_table["timer_time", number]
                             timer(Holo_timer_name, Holo_timer_time)
                         break
+                            #
+                            #
+                            #
                         case "clip",
                             local Holo_clip_localPos    = Act_table["clip_localPos"   , vector]
                             local Holo_clip_localAng    = Act_table["clip_localAng"   , angle ]
                             local Holo_clip_localOffset = Act_table["clip_localOffset", number]
                             
-                            local Holo_clip_counter = Holo_table["clip_counter", number] = Holo_table["clip_counter", number] + 1
+                            local Holo_clip_counter = Holo_table["clip_counter", number] + 1 Holo_table["clip_counter", number] = Holo_clip_counter
                             holoClip(Holo_index, Holo_clip_counter, Holo_clip_localPos, Holo_clip_localAng, Holo_clip_localOffset)
                         break
+                        case "clipLocal", 
+                            local Holo_clip_localPos_entity = Act_table["clip_localPos_obj", entity]
+                            if(!Holo_clip_localPos_entity) {Holo_clip_localPos_entity = AddHolo[Act_table["clip_localPos_obj", string] + "/entity", entity]}
+                            local Holo_clip_localPos = Holo_entity:toLocal(Holo_clip_localPos_entity:toWorld(Act_table["clip_localPos", vector]))
+                            
+                            local Holo_clip_localAng_entity = Act_table["clip_localAng_obj", entity]
+                            if(!Holo_clip_localAng_entity) {Holo_clip_localAng_entity = AddHolo[Act_table["clip_localAng_obj", string] + "/entity", entity]}
+                            local Holo_clip_localAng = Holo_entity:toLocal(Holo_clip_localAng_entity:toWorld(Act_table["clip_localAng", angle]))
+                            local Holo_clip_localOffset = Act_table["clip_localOffset", number]
+                            
+                            local Holo_clip_counter = Holo_table["clip_counter", number] + 1 Holo_table["clip_counter", number] = Holo_clip_counter
+                            holoClip(Holo_index, Holo_clip_counter, Holo_clip_localPos, Holo_clip_localAng, Holo_clip_localOffset)
+                        break
+                            #
+                            #
+                            #
                         case "alpha",
                             local Holo_alpha = Act_table["alpha", number]
-                            
                             holoAlpha(Holo_index, Holo_alpha)
                         break
+                            #
+                            #
+                            #
+                        case "renderFX",
+                            local Holo_effect = Act_table["effect", number]
+                            holoRenderFX(Holo_index, Holo_effect)
+                        break
+                            #
+                            #
+                            #
+                        case "drawShadow",
+                            #ifdef entity:drawShadow(number)
+                                Holo_entity:drawShadow(0)
+                            #else
+                                if(changed(0)) {printColor(vec(255,80,0), "[AddHolo] ", vec(255), "no function entity:drawShadow(number)")}
+                            #endif
+                        break
+                            #
+                            #
+                            #
                         default,
-                            
                         break
                     }
+                }
+                if(ActList:count()) {
+                    printColor(vec(255,80,0), "[AddHolo] ", vec(255), "Не хватило perf в цикле дополнительных действий. Holo name: " + Holo_name)
                 }
             }
             #
